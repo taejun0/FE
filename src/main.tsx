@@ -25,6 +25,6 @@ import router from './router';
 
 // initGA();
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <RouterProvider router={router} />
 );
