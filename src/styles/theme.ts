@@ -18,10 +18,21 @@ export const theme = {
     hightlight: '#539BFF',
     background: '#F4F9FF',
     Font: '#565555',
+    error: '#FF5B5B',
+    success: '#6A96FF',
   },
 
   fonts: {
     // 타이포그래피 스타일
+    body: {
+      Regular: fontGenerator(
+        '17px',
+        '400',
+        '22px',
+        '-0.43px',
+        'Pretendard-Regular, -apple-system, BlinkMacSystemFont, "Malgun Gothic", "맑은 고딕", sans-serif'
+      ),
+    },
     normal: fontGenerator(
       '24px',
       '400',
