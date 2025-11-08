@@ -38,3 +38,5 @@ dist-ssr
 localhost-key.pem
 localhost.pem
 .pem
+*storybook.log
+storybook-static
