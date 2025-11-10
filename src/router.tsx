@@ -1,5 +1,4 @@
 import { createBrowserRouter } from 'react-router-dom';
-import React from 'react';
 import App from './App';
 
 import { ROUTE_PATHS } from '@constants/RouteConstants';
