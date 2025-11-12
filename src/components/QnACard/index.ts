@@ -1,0 +1,2 @@
+export { QnACard } from './QnACard';
+

@@ -87,12 +87,20 @@ i {font-style:normal}
   font-style: normal;
   font-display: swap;
 } 
+@font-face {
+  font-family: 'OnglThinker';
+  src: url('/fonts/ongl_thinker.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
 // 초기 html 설정
 html {
-	background-color: #ffffff;	
+	background: linear-gradient(180deg, rgba(245, 245, 254, 1) 0%, rgba(236, 241, 253, 1) 25%, rgba(226, 241, 254, 1) 50%, rgba(226, 246, 255, 1) 75%, rgba(226, 246, 255, 1) 100%);
 	display: flex;
 	justify-content: center;
 	align-items: center;
+	min-height: 100vh;
 
 	-webkit-touch-callout: none;
     -webkit-tap-highlight-color:rgb(0 0 0 / 0%);
@@ -104,8 +112,16 @@ body {
 	width: 100%;
 	max-width: 100%;
 	overflow-x: hidden;
-	/* background-color: #E4EBD8; */
+	min-height: 100vh;
 	font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Malgun Gothic", "맑은 고딕", sans-serif;
+	background: linear-gradient(180deg, rgba(245, 245, 254, 1) 0%, rgba(236, 241, 253, 1) 25%, rgba(226, 241, 254, 1) 50%, rgba(226, 246, 255, 1) 75%, rgba(226, 246, 255, 1) 100%);
+	background-attachment: fixed;
+}
+
+#root {
+	min-height: 100vh;
+	background: linear-gradient(180deg, rgba(245, 245, 254, 1) 0%, rgba(236, 241, 253, 1) 25%, rgba(226, 241, 254, 1) 50%, rgba(226, 246, 255, 1) 75%, rgba(226, 246, 255, 1) 100%);
+	background-attachment: fixed;
 }
 `;
 

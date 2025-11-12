@@ -26,7 +26,7 @@ const preview: Preview = {
         <GlobalStyle />
         <Story />
       </ThemeProvider>
-    ),
+      ),
   ],
 };
 
