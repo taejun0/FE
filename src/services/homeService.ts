@@ -159,7 +159,7 @@ export interface GroupPdf {
 export interface GroupQuiz {
   id: number;
   title: string;
-  difficulty: string;
+  difficulty: string | null;
   participants_count: number;
 }
 
@@ -192,6 +192,7 @@ export interface GroupDetailData {
 export interface GroupDetailApiResponse {
   isSuccess: boolean;
   code: string;
+  httpStatus: number;
   message: string;
   data: GroupDetailData;
   timestamp: string;
@@ -365,6 +366,63 @@ export const createQuiz = async (
     return response.data;
   } catch (error) {
     console.error('퀴즈 생성 실패:', error);
+    throw error;
+  }
+};
+
+// 사용자 지정 퀴즈 생성 관련 타입
+export interface UserQuizQuestionOption {
+  option_text: string;
+}
+
+export interface UserQuizQuestion {
+  type: 'OX' | '객관식' | '단답형';
+  question_number: number;
+  question_text: string;
+  correct_answer: string;
+  explanation: string;
+  options?: UserQuizQuestionOption[];
+}
+
+export interface CreateUserQuizPayload {
+  group_id: number;
+  title: string;
+  questions: UserQuizQuestion[];
+}
+
+export interface CreateUserQuizData {
+  id: number;
+  pdf_id: number | null;
+  round: number;
+  difficulty: string | null;
+  question_types: string[];
+  total_questions: number;
+  qa_board: CreateQuizQaBoard;
+}
+
+export interface CreateUserQuizApiResponse {
+  isSuccess: boolean;
+  code: string;
+  httpStatus: number;
+  message: string;
+  data: CreateUserQuizData;
+  timestamp: string;
+}
+
+export const createUserQuiz = async (
+  payload: CreateUserQuizPayload
+): Promise<CreateUserQuizData> => {
+  try {
+    const response = await apiFetch<CreateUserQuizApiResponse>(
+      '/quiz/user/create',
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('사용자 지정 퀴즈 생성 실패:', error);
     throw error;
   }
 };
