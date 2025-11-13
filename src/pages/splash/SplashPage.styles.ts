@@ -28,26 +28,33 @@ interface QuestionMarkProps {
   $size: string;
   $opacity: number;
   $flip?: boolean;
+  $rotation?: number;
 }
 
 export const QuestionMark = styled.img<QuestionMarkProps>(
-  ({ $top, $right, $bottom, $left, $size, $opacity, $flip }) => ({
-    position: 'absolute',
-    ...($top && { top: $top }),
-    ...($right && { right: $right }),
-    ...($bottom && { bottom: $bottom }),
-    ...($left && { left: $left }),
-    width: $size,
-    height: 'auto',
-    maxWidth: $size,
-    maxHeight: $size,
-    objectFit: 'contain',
-    opacity: $opacity,
-    userSelect: 'none',
-    pointerEvents: 'none',
-    zIndex: 0,
-    transform: $flip ? 'scaleX(-1)' : 'none',
-  })
+  ({ $top, $right, $bottom, $left, $size, $opacity, $flip, $rotation }) => {
+    const transforms: string[] = [];
+    if ($flip) transforms.push('scaleX(-1)');
+    if ($rotation !== undefined) transforms.push(`rotate(${$rotation}deg)`);
+
+    return {
+      position: 'absolute',
+      ...($top && { top: $top }),
+      ...($right && { right: $right }),
+      ...($bottom && { bottom: $bottom }),
+      ...($left && { left: $left }),
+      width: $size,
+      height: 'auto',
+      maxWidth: $size,
+      maxHeight: $size,
+      objectFit: 'contain',
+      opacity: $opacity,
+      userSelect: 'none',
+      pointerEvents: 'none',
+      zIndex: 0,
+      transform: transforms.length > 0 ? transforms.join(' ') : 'none',
+    };
+  }
 );
 
 export const Content = styled.div({
