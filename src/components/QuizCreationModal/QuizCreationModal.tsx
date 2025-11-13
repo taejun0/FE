@@ -1,7 +1,7 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 import * as S from './QuizCreationModal.styles';
 import fileImage from '../../assets/images/File.png';
-import { createQuiz } from '@services/homeService';
+import { createQuiz, createUserQuiz } from '@services/homeService';
 import { ApiError } from '@services/apiClient';
 
 export type QuizQuestionType = 'OX' | 'MULTIPLE_CHOICE' | 'FILL_IN';
@@ -13,6 +13,7 @@ interface QuizQuestion {
   oxAnswer: 'O' | 'X' | '';
   choices: string[];
   answer: string;
+  explanation: string;
   image: File | null | undefined;
   imagePreview: string;
 }
@@ -29,6 +30,7 @@ interface QuizCreationModalProps {
   onSubmit?: (questions: QuizQuestion[]) => void;
   onSuccess?: () => void;
   pdfFiles?: PdfFile[];
+  groupId?: number; // 사용자 지정 퀴즈 생성 시 필요
 }
 
 const createEmptyQuestion = (): QuizQuestion => ({
@@ -38,6 +40,7 @@ const createEmptyQuestion = (): QuizQuestion => ({
   oxAnswer: '',
   choices: ['', '', '', ''],
   answer: '',
+  explanation: '',
   image: null,
   imagePreview: '',
 });
@@ -50,6 +53,7 @@ export const QuizCreationModal = ({
   onSubmit,
   onSuccess,
   pdfFiles = [],
+  groupId,
 }: QuizCreationModalProps) => {
   const [creationMode, setCreationMode] = useState<QuizCreationMode>(null);
   const [questions, setQuestions] = useState<QuizQuestion[]>([
@@ -58,10 +62,14 @@ export const QuizCreationModal = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const trackRef = useRef<HTMLDivElement>(null);
   const questionsRef = useRef(questions);
+  const [quizTitle, setQuizTitle] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // AI 생성 모드 state
   const [selectedPdfId, setSelectedPdfId] = useState<number | null>(null);
-  const [aiQuestionType, setAiQuestionType] = useState<QuizQuestionType>('OX');
+  const [aiQuestionTypes, setAiQuestionTypes] = useState<QuizQuestionType[]>(
+    []
+  );
   const [aiQuestionCount, setAiQuestionCount] = useState<string>('');
   const [aiExamDate, setAiExamDate] = useState<string>('');
   const [aiDifficulty, setAiDifficulty] = useState<'상' | '중' | '하' | ''>('');
@@ -103,9 +111,11 @@ export const QuizCreationModal = ({
       setQuestions([createEmptyQuestion()]);
       setCurrentIndex(0);
       setCreationMode(null);
+      setQuizTitle('');
+      setIsSubmitting(false);
       // AI 모드 state 초기화
       setSelectedPdfId(null);
-      setAiQuestionType('OX');
+      setAiQuestionTypes([]);
       setAiQuestionCount('');
       setAiExamDate('');
       setAiDifficulty('');
@@ -184,6 +194,14 @@ export const QuizCreationModal = ({
     setQuestions((prev) =>
       prev.map((question, idx) =>
         idx === index ? { ...question, answer: value } : question
+      )
+    );
+  };
+
+  const handleExplanationChange = (index: number, value: string) => {
+    setQuestions((prev) =>
+      prev.map((question, idx) =>
+        idx === index ? { ...question, explanation: value } : question
       )
     );
   };
@@ -275,14 +293,106 @@ export const QuizCreationModal = ({
   };
 
   const isQuizFormValid = useMemo(
-    () => questions.length > 0 && questions.every(isQuestionComplete),
-    [questions]
+    () =>
+      quizTitle.trim().length > 0 &&
+      questions.length > 0 &&
+      questions.every(isQuestionComplete),
+    [questions, quizTitle]
   );
 
-  const handleSubmit = () => {
-    if (!isQuizFormValid) return;
-    onSubmit?.(questions);
-    onClose();
+  const handleSubmit = async () => {
+    if (!isQuizFormValid || isSubmitting) return;
+
+    // groupId가 있으면 API 호출, 없으면 기존 onSubmit 콜백 사용
+    if (groupId) {
+      try {
+        setIsSubmitting(true);
+        // QuizQuestion을 API 형식으로 변환
+        const apiQuestions = questions
+          .filter((q) => isQuestionComplete(q)) // 완성된 문제만 필터링
+          .map((q, index) => {
+            const baseQuestion = {
+              question_number: index + 1,
+              question_text: q.question.trim(),
+              explanation: q.explanation?.trim() || '',
+            };
+
+            if (q.type === 'OX') {
+              if (
+                q.oxAnswer === '' ||
+                (q.oxAnswer !== 'O' && q.oxAnswer !== 'X')
+              ) {
+                throw new Error('OX 문제의 정답을 선택해주세요.');
+              }
+              return {
+                ...baseQuestion,
+                type: 'OX' as const,
+                correct_answer: q.oxAnswer,
+              };
+            } else if (q.type === 'MULTIPLE_CHOICE') {
+              // 첫 번째 choice가 정답
+              if (!q.choices || q.choices.length === 0) {
+                throw new Error('객관식 문제의 보기를 입력해주세요.');
+              }
+              // 모든 choice가 채워져 있어야 함 (isQuestionComplete에서 검증됨)
+              const correctIndex = 0;
+              const correctAnswer = String.fromCharCode(65 + correctIndex); // 'A', 'B', 'C', 'D'
+              return {
+                ...baseQuestion,
+                type: '객관식' as const,
+                correct_answer: correctAnswer,
+                options: q.choices.map((choice, idx) => ({
+                  option_text: `${String.fromCharCode(
+                    65 + idx
+                  )}. ${choice.trim()}`,
+                })),
+              };
+            } else {
+              // FILL_IN
+              if (!q.answer || q.answer.trim() === '') {
+                throw new Error('단답형 문제의 정답을 입력해주세요.');
+              }
+              return {
+                ...baseQuestion,
+                type: '단답형' as const,
+                correct_answer: q.answer.trim(),
+              };
+            }
+          });
+
+        await createUserQuiz({
+          group_id: groupId,
+          title: quizTitle.trim(),
+          questions: apiQuestions,
+        });
+
+        onSuccess?.();
+        onClose();
+      } catch (error) {
+        console.error('사용자 지정 퀴즈 생성 실패:', error);
+        let errorMessage = '퀴즈 생성에 실패했습니다. 다시 시도해 주세요.';
+
+        if (error instanceof ApiError) {
+          if (
+            error.body &&
+            typeof error.body === 'object' &&
+            'message' in error.body
+          ) {
+            errorMessage = (error.body as { message: string }).message;
+          } else if (error.message) {
+            errorMessage = error.message;
+          }
+        }
+
+        alert(errorMessage);
+      } finally {
+        setIsSubmitting(false);
+      }
+    } else {
+      // 기존 방식 (onSubmit 콜백)
+      onSubmit?.(questions);
+      onClose();
+    }
   };
 
   const canGoPrev = currentIndex > 0;
@@ -319,6 +429,7 @@ export const QuizCreationModal = ({
   if (creationMode === 'AI') {
     const isAiFormValid =
       selectedPdfId !== null &&
+      aiQuestionTypes.length > 0 &&
       aiQuestionCount !== '' &&
       parseInt(aiQuestionCount) > 0 &&
       parseInt(aiQuestionCount) <= 15 &&
@@ -334,15 +445,35 @@ export const QuizCreationModal = ({
       return typeMap[type];
     };
 
+    const handleQuestionTypeToggle = (type: QuizQuestionType) => {
+      setAiQuestionTypes((prev) => {
+        const newTypes = prev.includes(type)
+          ? prev.filter((t) => t !== type)
+          : [...prev, type];
+        console.log('문제 유형 선택:', newTypes);
+        return newTypes;
+      });
+    };
+
     const handleAiNext = async () => {
-      if (!selectedPdfId || !aiQuestionCount || !aiDifficulty) return;
+      if (
+        !selectedPdfId ||
+        !aiQuestionCount ||
+        !aiDifficulty ||
+        aiQuestionTypes.length === 0
+      )
+        return;
 
       try {
         setIsCreatingQuiz(true);
+        const questionTypesArray = aiQuestionTypes.map(
+          convertQuestionTypeToApi
+        );
+        console.log('전송할 문제 유형 배열:', questionTypesArray);
         const payload = {
           pdf_id: selectedPdfId,
           difficulty: aiDifficulty,
-          question_types: [convertQuestionTypeToApi(aiQuestionType)],
+          question_types: questionTypesArray,
           total_questions: parseInt(aiQuestionCount),
         };
 
@@ -384,7 +515,7 @@ export const QuizCreationModal = ({
 
           <S.AiFormContainer>
             <S.FormSection>
-              <S.Label>*PDF 파일 선택</S.Label>
+              <S.Label>* PDF 파일 선택</S.Label>
               <S.PdfFileGrid>
                 {pdfFiles.length === 0 ? (
                   <S.EmptyPdfMessage>
@@ -409,26 +540,26 @@ export const QuizCreationModal = ({
             </S.FormSection>
 
             <S.FormSection>
-              <S.Label>*문제 유형</S.Label>
+              <S.Label>*문제 유형 (중복 선택 가능)</S.Label>
               <S.SegmentedControl>
                 <S.SegmentButton
                   type="button"
-                  $active={aiQuestionType === 'OX'}
-                  onClick={() => setAiQuestionType('OX')}
+                  $active={aiQuestionTypes.includes('OX')}
+                  onClick={() => handleQuestionTypeToggle('OX')}
                 >
                   O,X
                 </S.SegmentButton>
                 <S.SegmentButton
                   type="button"
-                  $active={aiQuestionType === 'MULTIPLE_CHOICE'}
-                  onClick={() => setAiQuestionType('MULTIPLE_CHOICE')}
+                  $active={aiQuestionTypes.includes('MULTIPLE_CHOICE')}
+                  onClick={() => handleQuestionTypeToggle('MULTIPLE_CHOICE')}
                 >
                   객관식
                 </S.SegmentButton>
                 <S.SegmentButton
                   type="button"
-                  $active={aiQuestionType === 'FILL_IN'}
-                  onClick={() => setAiQuestionType('FILL_IN')}
+                  $active={aiQuestionTypes.includes('FILL_IN')}
+                  onClick={() => handleQuestionTypeToggle('FILL_IN')}
                 >
                   빈칸문제
                 </S.SegmentButton>
@@ -436,7 +567,7 @@ export const QuizCreationModal = ({
             </S.FormSection>
 
             <S.FormSection>
-              <S.Label>*문제 개수 (15개 이하만 가능)</S.Label>
+              <S.Label>* 문제 개수 (15개 이하만 가능)</S.Label>
               <S.Input
                 type="number"
                 min="1"
@@ -456,7 +587,7 @@ export const QuizCreationModal = ({
             </S.FormSection>
 
             <S.FormSection>
-              <S.Label>*시험 일자</S.Label>
+              <S.Label>* 시험 일자</S.Label>
               <S.Input
                 type="text"
                 placeholder="20xx.xx.xx"
@@ -466,7 +597,7 @@ export const QuizCreationModal = ({
             </S.FormSection>
 
             <S.FormSection>
-              <S.Label>*문제 난이도</S.Label>
+              <S.Label>* 문제 난이도</S.Label>
               <S.SegmentedControl>
                 <S.SegmentButton
                   type="button"
@@ -514,6 +645,15 @@ export const QuizCreationModal = ({
           <S.Subtitle>사용자 직접 생성</S.Subtitle>
         </S.Header>
 
+        <S.FormSection>
+          <S.Label>* 퀴즈 제목</S.Label>
+          <S.Input
+            placeholder="퀴즈 제목을 입력하세요."
+            value={quizTitle}
+            onChange={(e) => setQuizTitle(e.target.value)}
+          />
+        </S.FormSection>
+
         <S.TrackWrapper>
           <S.Track
             ref={trackRef}
@@ -524,7 +664,7 @@ export const QuizCreationModal = ({
             {questions.map((question, index) => (
               <S.Slide key={question.id}>
                 <S.FormSection>
-                  <S.Label>문제 유형</S.Label>
+                  <S.Label>* 문제 유형</S.Label>
                   <S.SegmentedControl>
                     <S.SegmentButton
                       type="button"
@@ -551,7 +691,7 @@ export const QuizCreationModal = ({
                 </S.FormSection>
 
                 <S.FormSection>
-                  <S.Label>문제</S.Label>
+                  <S.Label>* 문제</S.Label>
                   <S.Input
                     placeholder="퀴즈 문제를 입력하세요."
                     value={question.question}
@@ -563,7 +703,7 @@ export const QuizCreationModal = ({
                 </S.FormSection>
 
                 <S.FormSection>
-                  <S.Label>답안</S.Label>
+                  <S.Label>* 답안</S.Label>
                   {question.type === 'OX' && (
                     <S.OXButtonGroup>
                       <S.OXButton
@@ -616,50 +756,14 @@ export const QuizCreationModal = ({
                 </S.FormSection>
 
                 <S.FormSection>
-                  <S.Label>이미지 추가</S.Label>
-                  <S.UploadBox
-                    role="button"
-                    tabIndex={0}
-                    $hasPreview={Boolean(question.imagePreview)}
-                    onClick={() =>
-                      document
-                        .getElementById(`file-input-${question.id}`)
-                        ?.click()
-                    }
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        document
-                          .getElementById(`file-input-${question.id}`)
-                          ?.click();
-                      }
-                    }}
-                  >
-                    {question.imagePreview ? (
-                      <S.UploadPreview>
-                        <S.UploadPreviewImage
-                          src={question.imagePreview}
-                          alt="quiz"
-                        />
-                        <S.UploadPreviewFooter>
-                          <span>{question.image?.name}</span>
-                          <S.RemoveImageButton
-                            type="button"
-                            onClick={() => handleRemoveImage(index)}
-                          >
-                            이미지 삭제
-                          </S.RemoveImageButton>
-                        </S.UploadPreviewFooter>
-                      </S.UploadPreview>
-                    ) : (
-                      <S.UploadPlaceholder>jpeg, png</S.UploadPlaceholder>
-                    )}
-                  </S.UploadBox>
-                  <S.HiddenFileInput
-                    id={`file-input-${question.id}`}
-                    type="file"
-                    accept="image/png, image/jpeg"
+                  <S.Label>* 설명</S.Label>
+                  <S.Input
+                    placeholder="문제에 대한 설명을 입력하세요."
+                    value={question.explanation}
                     data-question-index={index}
-                    onChange={(event) => handleImageChange(index, event)}
+                    onChange={(e) =>
+                      handleExplanationChange(index, e.target.value)
+                    }
                   />
                 </S.FormSection>
 
@@ -703,9 +807,9 @@ export const QuizCreationModal = ({
           <S.SubmitButton
             type="button"
             onClick={handleSubmit}
-            disabled={!isQuizFormValid}
+            disabled={!isQuizFormValid || isSubmitting}
           >
-            문제 생성
+            {isSubmitting ? '생성 중...' : '문제 생성'}
           </S.SubmitButton>
         </S.FooterButtons>
       </S.Modal>
