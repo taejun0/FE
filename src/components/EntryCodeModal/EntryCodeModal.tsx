@@ -5,7 +5,7 @@ import { Button } from '@components/Button';
 type EntryCodeModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (code: string) => void;
+  onSubmit: (code: string) => void | Promise<void>;
 };
 
 export const EntryCodeModal = ({
@@ -63,13 +63,19 @@ export const EntryCodeModal = ({
     inputRefs[nextIndex].current?.focus();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const fullCode = code.join('');
     if (fullCode.length === 4) {
-      onSubmit(fullCode);
-      setCode(['', '', '', '']);
-      onClose();
+      try {
+        await onSubmit(fullCode);
+        // 성공 시에만 폼 리셋 및 모달 닫기
+        setCode(['', '', '', '']);
+        // Note: Modal will be closed by parent component on success
+      } catch (error) {
+        // Error handling is done in parent component
+        console.error('입장 코드 처리 중 오류:', error);
+      }
     }
   };
 

@@ -15,15 +15,15 @@ export const Header = styled.header({
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  padding: '16px 20px',
+  padding: '32px 76px 24px',
   boxSizing: 'border-box',
   width: '100%',
   flexShrink: 0,
   '@media (max-width: 768px)': {
-    padding: '12px 16px',
+    padding: '24px 28px 20px',
   },
   '@media (max-width: 480px)': {
-    padding: '10px 12px',
+    padding: '20px 20px 16px',
   },
 });
 
@@ -140,7 +140,7 @@ export const Content = styled.div({
   display: 'flex',
   gap: '24px',
   alignItems: 'stretch',
-  padding: '0 20px 20px 20px',
+  padding: '0 76px 48px',
   boxSizing: 'border-box',
   width: '100%',
   flex: 1,
@@ -149,20 +149,20 @@ export const Content = styled.div({
   overflowY: 'visible',
   '@media (max-width: 1200px)': {
     gap: '20px',
-    padding: '0 16px 16px 16px',
+    padding: '0 48px 40px',
   },
   '@media (max-width: 768px)': {
     flexDirection: 'column',
     gap: '16px',
-    padding: '0 12px 12px 12px',
+    padding: '0 24px 28px',
   },
   '@media (max-width: 480px)': {
-    padding: '0 8px 8px 8px',
+    padding: '0 20px 24px',
   },
 });
 
 export const LeftSection = styled.div({
-  flex: 1,
+  width: '100%',
   display: 'flex',
   flexDirection: 'column',
   gap: '24px',
@@ -179,10 +179,11 @@ export const LeftSection = styled.div({
 
 export const QuizRoomSectionWrapper = styled.div({
   borderRadius: '20px',
-  boxShadow: '0px 1px 20px 0px rgba(91, 157, 255, 0.2)',
+  boxShadow: '0px 1px 10px 0px rgba(91, 157, 255, 0.2)',
   boxSizing: 'border-box',
   overflow: 'visible',
-  flex: 1,
+  margin: '8px',
+
   display: 'flex',
   flexDirection: 'column',
   '@media (max-width: 768px)': {
@@ -197,7 +198,6 @@ export const QuizRoomSection = styled.div(({ theme }) => ({
   position: 'relative',
   borderRadius: '20px',
   padding: '32px 32px 32px 32px',
-  paddingRight: '16px',
   boxSizing: 'border-box',
   width: '100%',
   background: 'transparent',
@@ -227,7 +227,6 @@ export const QuizRoomSection = styled.div(({ theme }) => ({
   },
   '@media (max-width: 768px)': {
     padding: '24px 24px 24px 24px',
-    paddingRight: '12px',
     borderRadius: '16px',
     '&::before': {
       borderRadius: '16px',
@@ -236,7 +235,6 @@ export const QuizRoomSection = styled.div(({ theme }) => ({
   },
   '@media (max-width: 480px)': {
     padding: '20px 20px 20px 20px',
-    paddingRight: '10px',
     borderRadius: '12px',
     '&::before': {
       borderRadius: '12px',
@@ -247,10 +245,12 @@ export const QuizRoomSection = styled.div(({ theme }) => ({
 
 export const QnASectionWrapper = styled.div({
   borderRadius: '20px',
-  boxShadow: '0px 1px 20px 0px rgba(91, 157, 255, 0.2)',
+  boxShadow: '0px 1px 10px 0px rgba(91, 157, 255, 0.2)',
   boxSizing: 'border-box',
   overflow: 'visible',
-  flex: 1,
+
+  margin: '8px',
+
   display: 'flex',
   flexDirection: 'column',
   '@media (max-width: 768px)': {
@@ -413,19 +413,13 @@ export const RightSection = styled.div({
   display: 'flex',
   flexDirection: 'column',
   gap: '24px',
-  alignItems: 'stretch',
+  padding: '0 8px',
+
   position: 'sticky',
-  top: '20px',
-  width: '320px',
-  minWidth: '280px',
+
   flexShrink: 0,
-  '@media (max-width: 1024px)': {
-    width: '280px',
-  },
+
   '@media (max-width: 768px)': {
-    position: 'static',
-    width: '100%',
-    minWidth: 'auto',
     gap: '20px',
   },
   '@media (max-width: 480px)': {
@@ -594,12 +588,11 @@ export const ActionButtonBackgroundImage = styled.img<{
   $variant?: 'room' | 'code';
 }>(({ $variant }) => ({
   position: 'absolute',
-  top: $variant === 'room' ? '20%' : '60%',
+  top: '50%',
   left: '40%',
-  transform:
-    $variant === 'room' ? 'translate(-50%, -50%)' : 'translate(-50%, -60%)',
-  width: $variant === 'room' ? '130%' : '120%',
-  height: $variant === 'room' ? '130%' : '120%',
+  transform: 'translate(-50%, -50%)',
+  width: '100%',
+  height: '100%',
   opacity: 1,
   objectFit: 'contain',
   pointerEvents: 'none',
@@ -617,17 +610,21 @@ export const ActionButtonSmallText = styled.span(({ theme }) => ({
 
 export const ActionButtonMainText = styled.span<{ $variant?: 'room' | 'code' }>(
   ({ theme, $variant }) => ({
-    ...theme.fonts.emphasis,
-    fontSize: '40px',
-    lineHeight: 1.1,
+    ...theme.fonts.title,
+    fontSize: '60px',
+    lineHeight: 1,
     position: 'relative',
     zIndex: 1,
-    color: $variant === 'room' ? theme.colors.hightlight : theme.colors.Font,
+    background:
+      'linear-gradient(180deg, rgba(106, 150, 255, 1) 0%, rgba(175, 190, 245, 1) 100%)',
+    WebkitBackgroundClip: 'text',
+    backgroundClip: 'text',
+    color: 'transparent',
     '@media (max-width: 768px)': {
-      fontSize: '26px',
+      fontSize: '40px',
     },
     '@media (max-width: 480px)': {
-      fontSize: '22px',
+      fontSize: '40px',
     },
   })
 );

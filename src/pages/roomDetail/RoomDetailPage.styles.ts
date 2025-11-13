@@ -167,7 +167,7 @@ export const HeaderSection = styled.div({
   gap: '24px',
   padding: '0 76px',
   '@media (max-width: 1024px)': {
-    padding: '0 48px',
+    padding: '0 76px',
   },
   '@media (max-width: 768px)': {
     padding: '0 24px',
@@ -176,6 +176,18 @@ export const HeaderSection = styled.div({
   '@media (max-width: 480px)': {
     padding: '0 20px',
     gap: '20px',
+  },
+});
+
+export const MateSectionWrapper = styled.div({
+  display: 'flex',
+  alignItems: 'flex-end ',
+  gap: '16px',
+  flexWrap: 'wrap',
+  '@media (max-width: 768px)': {
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    gap: '16px',
   },
 });
 
@@ -307,8 +319,6 @@ export const WelcomeCharacter = styled.div({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  background:
-    'linear-gradient(180deg, rgba(243, 248, 255, 1) 0%, rgba(222, 237, 255, 1) 100%)',
   '& img': {
     width: '100%',
     height: '100%',
@@ -339,13 +349,7 @@ export const MateSection = styled.div({
   backgroundClip: 'padding-box, border-box',
   boxShadow:
     '0px 32px 64px rgba(91, 157, 255, 0.18), inset 0px 1px 4px rgba(255, 255, 255, 0.6)',
-  '@media (max-width: 1024px)': {
-    width: '100%',
-    justifyContent: 'space-between',
-  },
   '@media (max-width: 768px)': {
-    flexDirection: 'column',
-    alignItems: 'stretch',
     gap: '20px',
     width: '100%',
   },
@@ -459,6 +463,113 @@ export const CopyCodeButton = styled.button(({ theme }) => ({
   },
 }));
 
+export const RemoveMateButton = styled.button({
+  width: '40px',
+  height: '40px',
+  borderRadius: '50%',
+  border: '2px solid rgba(255, 107, 107, 0.3)',
+  background: 'rgba(255, 255, 255, 0.6)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  cursor: 'pointer',
+  padding: 0,
+  boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
+  transition: 'all 0.2s ease',
+  '&:hover': {
+    background: 'rgba(255, 107, 107, 0.1)',
+    borderColor: 'rgba(255, 107, 107, 0.5)',
+    transform: 'scale(1.05)',
+  },
+  '&::before': {
+    content: "''",
+    width: '16px',
+    height: '2px',
+    background: '#FF6B6B',
+    borderRadius: '1px',
+  },
+  '@media (max-width: 768px)': {
+    width: '36px',
+    height: '36px',
+    '&::before': {
+      width: '14px',
+    },
+  },
+  '@media (max-width: 560px)': {
+    width: '32px',
+    height: '32px',
+    '&::before': {
+      width: '12px',
+    },
+  },
+});
+
+export const DeleteButton = styled.button(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  padding: '4px 8px',
+  width: 'fit-content',
+  borderRadius: '12px',
+  border: '2px solid rgba(255, 107, 107, 0.3)',
+  background: 'transparent',
+  cursor: 'pointer',
+  boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
+  transition: 'all 0.2s ease',
+  ...theme.fonts.body.Regular,
+  color: '#FF6B6B',
+  fontSize: '16px',
+  fontWeight: 500,
+  '&:hover': {
+    background: 'rgba(255, 107, 107, 0.1)',
+    borderColor: 'rgba(255, 107, 107, 0.5)',
+    transform: 'translateY(-2px)',
+    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.15)',
+  },
+  '@media (max-width: 768px)': {
+    fontSize: '15px',
+  },
+  '@media (max-width: 560px)': {
+    fontSize: '14px',
+  },
+}));
+
+export const DeleteIcon = styled.span({
+  display: 'inline-block',
+  width: '18px',
+  height: '18px',
+  position: 'relative',
+  '&::before': {
+    content: "''",
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: '14px',
+    height: '14px',
+    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FF6B6B'%3E%3Cpath d='M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z'/%3E%3C/svg%3E")`,
+    backgroundSize: 'contain',
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'center',
+  },
+  '@media (max-width: 768px)': {
+    width: '16px',
+    height: '16px',
+    '&::before': {
+      width: '12px',
+      height: '12px',
+    },
+  },
+  '@media (max-width: 560px)': {
+    width: '14px',
+    height: '14px',
+    '&::before': {
+      width: '10px',
+      height: '10px',
+    },
+  },
+});
+
 export const UtilityRow = styled.div({
   display: 'grid',
   gridTemplateColumns: '1fr 1.5fr',
@@ -530,7 +641,7 @@ export const UploadLeft = styled.div({
   gap: '16px',
   textAlign: 'center',
   '@media (max-width: 768px)': {
-    flexDirection: 'row',
+    flexDirection: 'column',
     justifyContent: 'space-between',
   },
   '@media (max-width: 560px)': {
@@ -594,7 +705,6 @@ export const UploadRightHeader = styled.div({
   gap: '12px',
   '@media (max-width: 768px)': {
     flexWrap: 'wrap',
-    justifyContent: 'flex-start',
   },
 });
 
@@ -626,6 +736,41 @@ export const UploadDescription = styled.span(({ theme }) => ({
   },
   '@media (max-width: 560px)': {
     fontSize: '15px',
+  },
+}));
+
+export const PdfList = styled.div({
+  display: 'flex',
+  flexDirection: 'column',
+  width: '100%',
+  '@media (max-width: 768px)': {
+    gap: '6px',
+  },
+});
+
+export const PdfItem = styled.div(({ theme }) => ({
+  ...theme.fonts.body.Regular,
+  fontSize: '16px',
+  color: theme.colors.hightlight,
+  cursor: 'pointer',
+  padding: '8px 12px',
+  borderRadius: '8px',
+  transition: 'all 0.2s ease',
+  textDecoration: 'none',
+  '&:hover': {
+    backgroundColor: 'rgba(91, 157, 255, 0.1)',
+    transform: 'translateX(4px)',
+  },
+  '&:active': {
+    transform: 'translateX(2px)',
+  },
+  '@media (max-width: 768px)': {
+    fontSize: '15px',
+    padding: '6px 10px',
+  },
+  '@media (max-width: 560px)': {
+    fontSize: '14px',
+    padding: '6px 8px',
   },
 }));
 
@@ -723,7 +868,7 @@ export const EmptyStateImage = styled.div({
   },
 });
 
-export const SidebarCard = styled(InfoCard)({
+export const SidebarCard = styled(InfoCard)(({ theme }) => ({
   padding: '28px 24px',
   display: 'flex',
   flexDirection: 'column',
@@ -732,7 +877,19 @@ export const SidebarCard = styled(InfoCard)({
     padding: '24px 20px',
     gap: '14px',
   },
-});
+
+  '> span': {
+    ...theme.fonts.body.Regular,
+    fontSize: '20px',
+    color: theme.colors.Font,
+    '@media (max-width: 768px)': {
+      fontSize: '18px',
+    },
+    '@media (max-width: 560px)': {
+      fontSize: '16px',
+    },
+  },
+}));
 
 export const SidebarTitle = styled.h3(({ theme }) => ({
   ...theme.fonts.emphasis,
@@ -838,3 +995,103 @@ export const HorizontalScrollArea = styled.div({
 
 export const QuizCardList = styled(HorizontalScrollArea)({});
 export const QnaCardList = styled(HorizontalScrollArea)({});
+
+export const PdfModalOverlay = styled.div({
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  backgroundColor: 'rgba(0, 0, 0, 0.75)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  zIndex: 10000,
+  padding: '20px',
+  '@media (max-width: 768px)': {
+    padding: '16px',
+  },
+  '@media (max-width: 560px)': {
+    padding: '12px',
+  },
+});
+
+export const PdfModalContent = styled.div({
+  width: '90%',
+  maxWidth: '1200px',
+  height: '90%',
+  maxHeight: '90vh',
+  backgroundColor: '#fff',
+  borderRadius: '16px',
+  display: 'flex',
+  flexDirection: 'column',
+  overflow: 'hidden',
+  boxShadow: '0px 20px 60px rgba(0, 0, 0, 0.3)',
+  '@media (max-width: 768px)': {
+    width: '95%',
+    height: '95%',
+    borderRadius: '12px',
+  },
+  '@media (max-width: 560px)': {
+    width: '100%',
+    height: '100%',
+    borderRadius: '0',
+    maxHeight: '100vh',
+  },
+});
+
+export const PdfModalHeader = styled.div({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  padding: '16px 24px',
+  borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
+  '@media (max-width: 768px)': {
+    padding: '12px 20px',
+  },
+  '@media (max-width: 560px)': {
+    padding: '10px 16px',
+  },
+});
+
+export const PdfModalTitle = styled.h3(({ theme }) => ({
+  ...theme.fonts.emphasis,
+  fontSize: '20px',
+  color: theme.colors.Font,
+  margin: 0,
+  '@media (max-width: 768px)': {
+    fontSize: '18px',
+  },
+  '@media (max-width: 560px)': {
+    fontSize: '16px',
+  },
+}));
+
+export const PdfModalCloseButton = styled.button(({ theme }) => ({
+  width: '32px',
+  height: '32px',
+  borderRadius: '50%',
+  border: 'none',
+  backgroundColor: 'transparent',
+  color: theme.colors.Font,
+  fontSize: '24px',
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  transition: 'all 0.2s ease',
+  '&:hover': {
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  '@media (max-width: 560px)': {
+    width: '28px',
+    height: '28px',
+    fontSize: '20px',
+  },
+}));
+
+export const PdfModalBody = styled.div({
+  flex: 1,
+  overflow: 'hidden',
+  position: 'relative',
+});

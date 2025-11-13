@@ -139,24 +139,29 @@ export const EnterButton = styled.button(({ theme }) => ({
   },
 }));
 
-export const ExitButton = styled.button(({ theme }) => ({
-  ...theme.fonts.body.Regular,
-  color: theme.colors.button.secondary.text,
-  background: theme.colors.button.secondary.background,
-  border: `1px solid ${theme.colors.button.secondary.border}`,
-  borderRadius: '8px',
-  padding: '10px 16px',
-  cursor: 'pointer',
-  width: '100%',
-  transition: 'opacity 0.2s ease',
-  '&:hover': {
-    opacity: 0.9,
-  },
-  '&:active': {
-    opacity: 0.8,
-  },
-  '@media (max-width: 480px)': {
-    fontSize: '13px',
-    padding: '8px 14px',
-  },
-}));
+export const ExitButton = styled.button<{ $isLeader?: boolean }>(
+  ({ theme, $isLeader }) => ({
+    ...theme.fonts.body.Regular,
+    backgroundColor: theme.colors.white,
+    color: $isLeader ? '#ff6b6b' : theme.colors.hightlight,
+    border: $isLeader
+      ? '1px solid #ff6b6b'
+      : `1px solid ${theme.colors.button.secondary.border}`,
+    borderRadius: '8px',
+    padding: '10px 16px',
+    cursor: 'pointer',
+    width: '100%',
+    transition: 'opacity 0.2s ease',
+
+    '&:hover': {
+      opacity: 0.9,
+    },
+    '&:active': {
+      opacity: 0.8,
+    },
+    '@media (max-width: 480px)': {
+      fontSize: '13px',
+      padding: '8px 14px',
+    },
+  })
+);
