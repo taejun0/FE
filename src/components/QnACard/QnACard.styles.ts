@@ -6,6 +6,7 @@ export const Card = styled.div(({ theme }) => ({
   backgroundColor: theme.colors.white,
   borderRadius: '16px',
   padding: '20px',
+  height: '100%',
   minWidth: '250px',
   flexShrink: 0,
   gap: '12px',
