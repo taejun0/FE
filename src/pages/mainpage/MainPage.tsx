@@ -18,6 +18,7 @@ import {
   createGroup,
   joinGroup,
   leaveGroup,
+  deleteGroup,
 } from '@services/homeService';
 
 const generateExamCode = () =>
@@ -75,6 +76,7 @@ type QuizRoom = {
   isJoined: boolean;
   characterId: number;
   daysUntil: number;
+  isLeader?: boolean;
 };
 
 const MainPage = () => {
@@ -89,6 +91,10 @@ const MainPage = () => {
   );
   const [isExitModalOpen, setIsExitModalOpen] = useState(false);
   const [roomPendingExit, setRoomPendingExit] = useState<QuizRoom | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [roomPendingDelete, setRoomPendingDelete] = useState<QuizRoom | null>(
+    null
+  );
 
   const [examSchedules, setExamSchedules] = useState<ExamInfo[]>([]);
   const [quizRooms, setQuizRooms] = useState<QuizRoom[]>([]);
@@ -118,8 +124,15 @@ const MainPage = () => {
   };
 
   const handleExitRequest = (room: QuizRoom) => {
-    setRoomPendingExit(room);
-    setIsExitModalOpen(true);
+    // 방장인 경우 삭제 모달 표시
+    if (room.isLeader) {
+      setRoomPendingDelete(room);
+      setIsDeleteModalOpen(true);
+    } else {
+      // 일반 멤버인 경우 퇴장 모달 표시
+      setRoomPendingExit(room);
+      setIsExitModalOpen(true);
+    }
   };
 
   const handleExitCancel = () => {
@@ -142,6 +155,30 @@ const MainPage = () => {
       setIsExitModalOpen(false);
     } catch (error) {
       console.error('그룹 퇴장 실패:', error);
+      // TODO: 에러 메시지 표시 (토스트 등)
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setIsDeleteModalOpen(false);
+    setRoomPendingDelete(null);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!roomPendingDelete) return;
+
+    try {
+      // 그룹 삭제 API 호출
+      await deleteGroup(roomPendingDelete.id);
+
+      // 삭제 성공 후 홈 데이터 재조회
+      await fetchAndUpdateHomeData();
+
+      // 모달 닫기
+      setRoomPendingDelete(null);
+      setIsDeleteModalOpen(false);
+    } catch (error) {
+      console.error('그룹 삭제 실패:', error);
       // TODO: 에러 메시지 표시 (토스트 등)
     }
   };
@@ -245,6 +282,7 @@ const MainPage = () => {
               ? '시험 D-Day'
               : '시험 종료';
           const characterId = ((group.id - 1) % 9) + 1;
+          const isLeader = group.role === 'LEADER';
 
           return {
             id: group.id,
@@ -254,6 +292,7 @@ const MainPage = () => {
             isJoined: true,
             characterId,
             daysUntil,
+            isLeader,
           };
         })
         .sort((a, b) => {
@@ -420,6 +459,7 @@ const MainPage = () => {
                           ? () => handleExitRequest(room)
                           : undefined
                       }
+                      isLeader={room.isLeader}
                     />
                   ))
                 )}
@@ -524,6 +564,20 @@ const MainPage = () => {
         }
         onCancel={handleExitCancel}
         onConfirm={handleExitConfirm}
+        isDelete={false}
+      />
+
+      <ExitRoomModal
+        isOpen={isDeleteModalOpen}
+        roomName={roomPendingDelete?.roomName ?? ''}
+        characterImage={
+          roomPendingDelete
+            ? CHARACTER_IMAGES[roomPendingDelete.characterId]
+            : undefined
+        }
+        onCancel={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        isDelete={true}
       />
     </S.Wrapper>
   );

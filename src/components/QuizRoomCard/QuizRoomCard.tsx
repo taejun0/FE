@@ -8,6 +8,7 @@ type QuizRoomCardProps = {
   avatarImage?: string;
   onEnter: () => void;
   onExit?: () => void;
+  isLeader?: boolean;
 };
 
 export const QuizRoomCard = ({
@@ -18,6 +19,7 @@ export const QuizRoomCard = ({
   avatarImage,
   onEnter,
   onExit,
+  isLeader = false,
 }: QuizRoomCardProps) => {
   return (
     <S.Card>
@@ -34,7 +36,9 @@ export const QuizRoomCard = ({
       <S.ButtonGroup>
         <S.EnterButton onClick={onEnter}>입장하기</S.EnterButton>
         {isJoined && onExit && (
-          <S.ExitButton onClick={onExit}>퇴장하기</S.ExitButton>
+          <S.ExitButton onClick={onExit} $isLeader={isLeader}>
+            {isLeader ? '삭제하기' : '퇴장하기'}
+          </S.ExitButton>
         )}
       </S.ButtonGroup>
     </S.Card>

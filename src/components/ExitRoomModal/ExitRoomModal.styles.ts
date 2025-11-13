@@ -101,20 +101,25 @@ export const SecondaryButton = styled.button(({ theme }) => ({
   },
 }));
 
-export const PrimaryButton = styled.button(({ theme }) => ({
-  flex: 1,
-  borderRadius: '12px',
-  border: 'none',
-  padding: '12px 0',
-  ...theme.fonts.body.Regular,
-  color: theme.colors.white,
-  background:
-    'linear-gradient(90deg, rgba(95, 142, 255, 1) 0%, rgba(148, 182, 255, 1) 100%)',
-  cursor: 'pointer',
-  transition: 'opacity 0.2s ease, transform 0.2s ease',
-  boxShadow: '0px 10px 20px rgba(91, 157, 255, 0.25)',
-  '&:hover': {
-    opacity: 0.9,
-    transform: 'translateY(-1px)',
-  },
-}));
+export const PrimaryButton = styled.button<{ $isDelete?: boolean }>(
+  ({ theme, $isDelete }) => ({
+    flex: 1,
+    borderRadius: '12px',
+    border: 'none',
+    padding: '12px 0',
+    ...theme.fonts.body.Regular,
+    color: theme.colors.white,
+    background: $isDelete
+      ? 'linear-gradient(90deg, rgba(255, 95, 95, 1) 0%, rgba(255, 148, 148, 1) 100%)'
+      : 'linear-gradient(90deg, rgba(95, 142, 255, 1) 0%, rgba(148, 182, 255, 1) 100%)',
+    cursor: 'pointer',
+    transition: 'opacity 0.2s ease, transform 0.2s ease',
+    boxShadow: $isDelete
+      ? '0px 10px 20px rgba(255, 95, 95, 0.25)'
+      : '0px 10px 20px rgba(91, 157, 255, 0.25)',
+    '&:hover': {
+      opacity: 0.9,
+      transform: 'translateY(-1px)',
+    },
+  })
+);

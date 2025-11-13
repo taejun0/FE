@@ -14,7 +14,6 @@ import { ExamInfo } from '@components/ExamInfoModal/ExamInfoModal';
 import { QuizCreationModal } from '@components/QuizCreationModal';
 import {
   getGroupDetail,
-  deleteGroup,
   uploadPdf,
   getPdfList,
   PdfListItem,
@@ -214,18 +213,6 @@ export const RoomDetailPage = () => {
     }
   };
 
-  const handleDeleteGroup = async () => {
-    if (!roomId || !groupData) return;
-
-    try {
-      await deleteGroup(Number(roomId));
-      navigate(ROUTE_PATHS.HOME, { replace: true });
-    } catch (error) {
-      console.error('그룹 삭제 실패:', error);
-      // TODO: 에러 메시지를 사용자에게 표시
-    }
-  };
-
   const handleFileSelect = () => {
     fileInputRef.current?.click();
   };
@@ -310,12 +297,6 @@ export const RoomDetailPage = () => {
               ))}
             </S.MateList>
           </S.MateSection>
-          {groupData?.group.role === 'LEADER' && (
-            <S.DeleteButton type="button" onClick={handleDeleteGroup}>
-              <S.DeleteIcon />
-              삭제하기
-            </S.DeleteButton>
-          )}
         </S.MateSectionWrapper>
       </S.HeaderSection>
 
