@@ -401,3 +401,167 @@ export const SubmitButton = styled.button(({ theme }) => ({
     cursor: 'not-allowed',
   },
 }));
+
+export const ModeSelectionContainer = styled.div({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '16px',
+  width: '100%',
+  '@media (max-width: 400px)': {
+    gap: '12px',
+  },
+});
+
+export const ModeOption = styled.button(({ theme }) => ({
+  width: '100%',
+  padding: '24px 32px',
+  borderRadius: '16px',
+  border: `2px solid ${theme.colors.hightlight}`,
+  background: 'rgba(255, 255, 255, 0.9)',
+  cursor: 'pointer',
+  transition: 'all 0.2s ease',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  boxShadow: '0px 4px 12px rgba(91, 157, 255, 0.1)',
+  '&:hover': {
+    background: 'rgba(91, 157, 255, 0.1)',
+    transform: 'translateY(-2px)',
+    boxShadow: '0px 6px 16px rgba(91, 157, 255, 0.2)',
+  },
+  '&:active': {
+    transform: 'translateY(0)',
+  },
+  '@media (max-width: 520px)': {
+    padding: '20px 28px',
+    borderRadius: '14px',
+  },
+  '@media (max-width: 400px)': {
+    padding: '18px 24px',
+    borderRadius: '12px',
+  },
+}));
+
+export const ModeTitle = styled.span(({ theme }) => ({
+  ...theme.fonts.emphasis,
+  fontSize: '20px',
+  color: theme.colors.hightlight,
+  '@media (max-width: 520px)': {
+    fontSize: '18px',
+  },
+  '@media (max-width: 400px)': {
+    fontSize: '16px',
+  },
+}));
+
+export const AiFormContainer = styled.div({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '24px',
+  width: '100%',
+  '@media (max-width: 400px)': {
+    gap: '20px',
+  },
+});
+
+export const PdfFileGrid = styled.div({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
+  gap: '12px',
+  width: '100%',
+  '@media (max-width: 400px)': {
+    gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))',
+    gap: '10px',
+  },
+});
+
+export const PdfFileCard = styled.button<{ $selected?: boolean }>(
+  ({ theme, $selected }) => ({
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    padding: '16px 12px',
+    borderRadius: '12px',
+    border: `2px solid ${
+      $selected ? theme.colors.hightlight : 'rgba(91, 157, 255, 0.2)'
+    }`,
+    background: $selected
+      ? 'rgba(91, 157, 255, 0.1)'
+      : 'rgba(255, 255, 255, 0.8)',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    '&:hover': {
+      borderColor: theme.colors.hightlight,
+      background: 'rgba(91, 157, 255, 0.1)',
+      transform: 'translateY(-2px)',
+    },
+    '@media (max-width: 400px)': {
+      padding: '12px 8px',
+      gap: '6px',
+    },
+  })
+);
+
+export const PdfFileIcon = styled.span({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: 'fit-content',
+  height: 'fit-content',
+  '& img': {
+    width: '100%',
+    height: '100%',
+    objectFit: 'contain',
+  },
+});
+
+export const PdfFileName = styled.span(({ theme }) => ({
+  ...theme.fonts.body.Regular,
+  fontSize: '12px',
+  color: theme.colors.Font,
+  textAlign: 'center',
+  wordBreak: 'break-word',
+  '@media (max-width: 400px)': {
+    fontSize: '11px',
+  },
+}));
+
+export const EmptyPdfMessage = styled.div(({ theme }) => ({
+  ...theme.fonts.body.Regular,
+  fontSize: '14px',
+  color: 'rgba(62, 86, 139, 0.6)',
+  textAlign: 'center',
+  padding: '20px',
+  '@media (max-width: 400px)': {
+    fontSize: '13px',
+    padding: '16px',
+  },
+}));
+
+export const AiNextButton = styled.button(({ theme }) => ({
+  width: '100%',
+  borderRadius: '14px',
+  border: 'none',
+  background:
+    'linear-gradient(90deg, rgba(114, 167, 255, 1) 0%, rgba(170, 200, 255, 1) 100%)',
+  color: theme.colors.white,
+  padding: '14px 24px',
+  cursor: 'pointer',
+  ...theme.fonts.emphasis,
+  fontSize: '18px',
+  marginTop: '8px',
+  '@media (max-width: 520px)': {
+    padding: '12px 20px',
+    fontSize: '16px',
+  },
+  '@media (max-width: 400px)': {
+    padding: '10px 16px',
+    fontSize: '15px',
+  },
+  '&:disabled': {
+    opacity: 0.5,
+    cursor: 'not-allowed',
+  },
+}));
