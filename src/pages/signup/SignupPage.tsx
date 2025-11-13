@@ -1,15 +1,21 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import * as S from './SignupPage.styles';
 import { TextField } from '@components/TextField';
 import { Button } from '@components/Button';
 import logoQroomText from '../../assets/images/Logo.png';
 import { ROUTE_PATHS } from '@constants/RouteConstants';
+import { login, persistAuth, signup } from '@services/authService';
+import { ApiError } from '@services/apiClient';
 
 const SignupPage = () => {
+  const navigate = useNavigate();
   const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const trimmedNickname = nickname.trim();
   const trimmedPassword = password.trim();
@@ -26,17 +32,59 @@ const SignupPage = () => {
     console.log('닉네임 중복 확인:', nickname);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFormValid) {
       return;
     }
-    // TODO: 회원가입 로직 구현
-    console.log('회원가입 시도:', {
-      nickname: trimmedNickname,
-      password: trimmedPassword,
-      passwordConfirm: trimmedPasswordConfirm,
-    });
+
+    setIsSubmitting(true);
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    try {
+      const signupResult = await signup({
+        nickname: trimmedNickname,
+        password: trimmedPassword,
+        passwordCheck: trimmedPasswordConfirm,
+      });
+
+      setSuccessMessage(
+        signupResult.message ||
+          '회원가입이 완료되었습니다. 자동으로 로그인 중입니다...'
+      );
+
+      try {
+        const loginResult = await login({
+          nickname: trimmedNickname,
+          password: trimmedPassword,
+        });
+
+        persistAuth(loginResult);
+        setSuccessMessage('회원가입이 완료되었습니다. 자동으로 로그인했어요!');
+
+        setTimeout(() => {
+          navigate(ROUTE_PATHS.HOME, { replace: true });
+        }, 800);
+      } catch (loginError: unknown) {
+        console.error('자동 로그인 실패:', loginError);
+        setErrorMessage(
+          '회원가입은 완료되었지만 자동 로그인에 실패했습니다. 로그인 페이지에서 다시 시도해 주세요.'
+        );
+        setTimeout(() => {
+          navigate(ROUTE_PATHS.LOGIN, { replace: true });
+        }, 1500);
+      }
+    } catch (error: unknown) {
+      console.error('회원가입 요청 실패:', error);
+      const message =
+        error instanceof ApiError
+          ? error.message || '회원가입에 실패했습니다. 다시 시도해 주세요.'
+          : '회원가입에 실패했습니다. 다시 시도해 주세요.';
+      setErrorMessage(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -75,11 +123,22 @@ const SignupPage = () => {
               enablePasswordToggle
             />
             <S.ButtonContainer>
-              <Button type="submit" variant="primary" disabled={!isFormValid}>
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={!isFormValid || isSubmitting}
+              >
                 시작하기
               </Button>
             </S.ButtonContainer>
           </S.Form>
+          <S.MessageArea $visible={Boolean(errorMessage || successMessage)}>
+            {errorMessage ? (
+              <S.ErrorMessage>{errorMessage}</S.ErrorMessage>
+            ) : successMessage ? (
+              <S.SuccessMessage>{successMessage}</S.SuccessMessage>
+            ) : null}
+          </S.MessageArea>
         </S.SignupCardContent>
       </S.SignupCard>
     </S.Container>

@@ -196,3 +196,33 @@ export const ButtonContainer = styled.div({
     maxWidth: '160px',
   },
 });
+
+const baseMessageStyle = {
+  width: '100%',
+  textAlign: 'center' as const,
+  fontSize: '16px',
+  lineHeight: 1.4,
+  margin: 0,
+};
+
+export const ErrorMessage = styled.p(({ theme }) => ({
+  ...theme.fonts.body.Regular,
+  ...baseMessageStyle,
+  color: theme.colors.error ?? '#FF6B6B',
+}));
+
+export const SuccessMessage = styled.p(({ theme }) => ({
+  ...theme.fonts.body.Regular,
+  ...baseMessageStyle,
+  color: theme.colors.hightlight,
+}));
+
+export const MessageArea = styled.div<{ $visible: boolean }>(({ $visible }) => ({
+  width: '100%',
+  minHeight: '32px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  transition: 'opacity 0.2s ease',
+  opacity: $visible ? 1 : 0,
+}));
