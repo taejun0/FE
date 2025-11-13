@@ -5,6 +5,7 @@ export interface HomeGroup {
   name: string;
   exam_date: string;
   member_count: number;
+  role?: string; // 'LEADER' | 'MEMBER' 등
 }
 
 export interface HomeQaBoard {
