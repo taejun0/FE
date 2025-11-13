@@ -1,5 +1,8 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 import * as S from './QuizCreationModal.styles';
+import fileImage from '../../assets/images/File.png';
+import { createQuiz } from '@services/homeService';
+import { ApiError } from '@services/apiClient';
 
 export type QuizQuestionType = 'OX' | 'MULTIPLE_CHOICE' | 'FILL_IN';
 
@@ -14,10 +17,18 @@ interface QuizQuestion {
   imagePreview: string;
 }
 
+interface PdfFile {
+  id: number;
+  title: string;
+  fileUrl: string;
+}
+
 interface QuizCreationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit?: (questions: QuizQuestion[]) => void;
+  onSuccess?: () => void;
+  pdfFiles?: PdfFile[];
 }
 
 const createEmptyQuestion = (): QuizQuestion => ({
@@ -31,17 +42,30 @@ const createEmptyQuestion = (): QuizQuestion => ({
   imagePreview: '',
 });
 
+export type QuizCreationMode = 'AI' | 'MANUAL' | null;
+
 export const QuizCreationModal = ({
   isOpen,
   onClose,
   onSubmit,
+  onSuccess,
+  pdfFiles = [],
 }: QuizCreationModalProps) => {
+  const [creationMode, setCreationMode] = useState<QuizCreationMode>(null);
   const [questions, setQuestions] = useState<QuizQuestion[]>([
     createEmptyQuestion(),
   ]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const trackRef = useRef<HTMLDivElement>(null);
   const questionsRef = useRef(questions);
+
+  // AI 생성 모드 state
+  const [selectedPdfId, setSelectedPdfId] = useState<number | null>(null);
+  const [aiQuestionType, setAiQuestionType] = useState<QuizQuestionType>('OX');
+  const [aiQuestionCount, setAiQuestionCount] = useState<string>('');
+  const [aiExamDate, setAiExamDate] = useState<string>('');
+  const [aiDifficulty, setAiDifficulty] = useState<'상' | '중' | '하' | ''>('');
+  const [isCreatingQuiz, setIsCreatingQuiz] = useState(false);
 
   useEffect(() => {
     questionsRef.current = questions;
@@ -78,6 +102,14 @@ export const QuizCreationModal = ({
       });
       setQuestions([createEmptyQuestion()]);
       setCurrentIndex(0);
+      setCreationMode(null);
+      // AI 모드 state 초기화
+      setSelectedPdfId(null);
+      setAiQuestionType('OX');
+      setAiQuestionCount('');
+      setAiExamDate('');
+      setAiDifficulty('');
+      setIsCreatingQuiz(false);
     }
   }, [isOpen]);
 
@@ -258,12 +290,228 @@ export const QuizCreationModal = ({
 
   if (!isOpen) return null;
 
+  // 초기 선택 화면
+  if (creationMode === null) {
+    return (
+      <S.Overlay onClick={onClose}>
+        <S.Modal onClick={(event) => event.stopPropagation()}>
+          <S.Header>
+            <S.Title>NEW Quiz</S.Title>
+          </S.Header>
+
+          <S.ModeSelectionContainer>
+            <S.ModeOption type="button" onClick={() => setCreationMode('AI')}>
+              <S.ModeTitle>AI 생성</S.ModeTitle>
+            </S.ModeOption>
+            <S.ModeOption
+              type="button"
+              onClick={() => setCreationMode('MANUAL')}
+            >
+              <S.ModeTitle>사용자 직접 생성</S.ModeTitle>
+            </S.ModeOption>
+          </S.ModeSelectionContainer>
+        </S.Modal>
+      </S.Overlay>
+    );
+  }
+
+  // AI 생성 모드 UI
+  if (creationMode === 'AI') {
+    const isAiFormValid =
+      selectedPdfId !== null &&
+      aiQuestionCount !== '' &&
+      parseInt(aiQuestionCount) > 0 &&
+      parseInt(aiQuestionCount) <= 15 &&
+      aiExamDate !== '' &&
+      aiDifficulty !== '';
+
+    const convertQuestionTypeToApi = (type: QuizQuestionType): string => {
+      const typeMap: Record<QuizQuestionType, string> = {
+        OX: 'OX',
+        MULTIPLE_CHOICE: '객관식',
+        FILL_IN: '단답형',
+      };
+      return typeMap[type];
+    };
+
+    const handleAiNext = async () => {
+      if (!selectedPdfId || !aiQuestionCount || !aiDifficulty) return;
+
+      try {
+        setIsCreatingQuiz(true);
+        const payload = {
+          pdf_id: selectedPdfId,
+          difficulty: aiDifficulty,
+          question_types: [convertQuestionTypeToApi(aiQuestionType)],
+          total_questions: parseInt(aiQuestionCount),
+        };
+
+        const result = await createQuiz(payload);
+        console.log('퀴즈 생성 성공:', result);
+        // 성공 시 모달 닫기 및 콜백 호출
+        onClose();
+        onSuccess?.();
+      } catch (error) {
+        console.error('퀴즈 생성 실패:', error);
+        let errorMessage = '퀴즈 생성에 실패했습니다. 다시 시도해 주세요.';
+
+        if (error instanceof ApiError) {
+          // API 응답에서 메시지 추출
+          if (
+            error.body &&
+            typeof error.body === 'object' &&
+            'message' in error.body
+          ) {
+            errorMessage = (error.body as { message: string }).message;
+          } else if (error.message) {
+            errorMessage = error.message;
+          }
+        }
+
+        alert(errorMessage);
+      } finally {
+        setIsCreatingQuiz(false);
+      }
+    };
+
+    return (
+      <S.Overlay onClick={onClose}>
+        <S.Modal onClick={(event) => event.stopPropagation()}>
+          <S.Header>
+            <S.Title>NEW Quiz</S.Title>
+            <S.Subtitle>AI 생성</S.Subtitle>
+          </S.Header>
+
+          <S.AiFormContainer>
+            <S.FormSection>
+              <S.Label>*PDF 파일 선택</S.Label>
+              <S.PdfFileGrid>
+                {pdfFiles.length === 0 ? (
+                  <S.EmptyPdfMessage>
+                    업로드된 PDF 파일이 없습니다.
+                  </S.EmptyPdfMessage>
+                ) : (
+                  pdfFiles.map((pdf) => (
+                    <S.PdfFileCard
+                      key={pdf.id}
+                      type="button"
+                      $selected={selectedPdfId === pdf.id}
+                      onClick={() => setSelectedPdfId(pdf.id)}
+                    >
+                      <S.PdfFileIcon>
+                        <img src={fileImage} alt="PDF file" />
+                      </S.PdfFileIcon>
+                      <S.PdfFileName>{pdf.title}</S.PdfFileName>
+                    </S.PdfFileCard>
+                  ))
+                )}
+              </S.PdfFileGrid>
+            </S.FormSection>
+
+            <S.FormSection>
+              <S.Label>*문제 유형</S.Label>
+              <S.SegmentedControl>
+                <S.SegmentButton
+                  type="button"
+                  $active={aiQuestionType === 'OX'}
+                  onClick={() => setAiQuestionType('OX')}
+                >
+                  O,X
+                </S.SegmentButton>
+                <S.SegmentButton
+                  type="button"
+                  $active={aiQuestionType === 'MULTIPLE_CHOICE'}
+                  onClick={() => setAiQuestionType('MULTIPLE_CHOICE')}
+                >
+                  객관식
+                </S.SegmentButton>
+                <S.SegmentButton
+                  type="button"
+                  $active={aiQuestionType === 'FILL_IN'}
+                  onClick={() => setAiQuestionType('FILL_IN')}
+                >
+                  빈칸문제
+                </S.SegmentButton>
+              </S.SegmentedControl>
+            </S.FormSection>
+
+            <S.FormSection>
+              <S.Label>*문제 개수 (15개 이하만 가능)</S.Label>
+              <S.Input
+                type="number"
+                min="1"
+                max="15"
+                placeholder="00개"
+                value={aiQuestionCount}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (
+                    value === '' ||
+                    (parseInt(value) >= 1 && parseInt(value) <= 15)
+                  ) {
+                    setAiQuestionCount(value);
+                  }
+                }}
+              />
+            </S.FormSection>
+
+            <S.FormSection>
+              <S.Label>*시험 일자</S.Label>
+              <S.Input
+                type="text"
+                placeholder="20xx.xx.xx"
+                value={aiExamDate}
+                onChange={(e) => setAiExamDate(e.target.value)}
+              />
+            </S.FormSection>
+
+            <S.FormSection>
+              <S.Label>*문제 난이도</S.Label>
+              <S.SegmentedControl>
+                <S.SegmentButton
+                  type="button"
+                  $active={aiDifficulty === '상'}
+                  onClick={() => setAiDifficulty('상')}
+                >
+                  상
+                </S.SegmentButton>
+                <S.SegmentButton
+                  type="button"
+                  $active={aiDifficulty === '중'}
+                  onClick={() => setAiDifficulty('중')}
+                >
+                  중
+                </S.SegmentButton>
+                <S.SegmentButton
+                  type="button"
+                  $active={aiDifficulty === '하'}
+                  onClick={() => setAiDifficulty('하')}
+                >
+                  하
+                </S.SegmentButton>
+              </S.SegmentedControl>
+            </S.FormSection>
+
+            <S.AiNextButton
+              type="button"
+              onClick={handleAiNext}
+              disabled={!isAiFormValid || isCreatingQuiz}
+            >
+              {isCreatingQuiz ? '생성 중...' : '다음'}
+            </S.AiNextButton>
+          </S.AiFormContainer>
+        </S.Modal>
+      </S.Overlay>
+    );
+  }
+
+  // 사용자 직접 생성 모드 UI
   return (
     <S.Overlay onClick={onClose}>
       <S.Modal onClick={(event) => event.stopPropagation()}>
         <S.Header>
           <S.Title>NEW Quiz</S.Title>
-          <S.Subtitle>사용자 직접 생성 (스킬 가능)</S.Subtitle>
+          <S.Subtitle>사용자 직접 생성</S.Subtitle>
         </S.Header>
 
         <S.TrackWrapper>

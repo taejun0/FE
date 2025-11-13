@@ -5,7 +5,7 @@ type ExitRoomModalProps = {
   isOpen: boolean;
   roomName: string;
   characterImage?: string;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<void>;
   onCancel: () => void;
 };
 

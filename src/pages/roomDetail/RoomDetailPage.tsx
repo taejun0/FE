@@ -1,5 +1,5 @@
-import { useMemo, useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useMemo, useEffect, useRef, useState, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import * as S from './RoomDetailPage.styles';
 import logoQroomText from '../../assets/images/Logo.png';
 import ggoom1Image from '../../assets/images/ggoom/ggoom1.png';
@@ -12,129 +12,135 @@ import { CHARACTER_IMAGES } from '@constants/characterImages';
 import { ROUTE_PATHS } from '@constants/RouteConstants';
 import { ExamInfo } from '@components/ExamInfoModal/ExamInfoModal';
 import { QuizCreationModal } from '@components/QuizCreationModal';
+import {
+  getGroupDetail,
+  deleteGroup,
+  uploadPdf,
+  getPdfList,
+  PdfListItem,
+} from '@services/homeService';
 
-interface RoomRouteState {
-  room?: {
-    id: number;
-    roomName: string;
-    participantCount: number;
-    examTag: string;
-    characterId: number;
+const formatExamDate = (dateString: string): string => {
+  try {
+    const date = new Date(dateString);
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${month}.${day}`;
+  } catch {
+    return dateString;
+  }
+};
+
+const getDifficultyLabel = (difficulty: string): string => {
+  const difficultyMap: Record<string, string> = {
+    상: '난이도 상',
+    중: '난이도 중',
+    하: '난이도 하',
   };
-  examInfo?: ExamInfo;
-}
-
-const mateNames = ['뭐요뭐요', '뭐요뭐요', '뭐요뭐요', '뭐요뭐요', '뭐요뭐요'];
+  return difficultyMap[difficulty] || `난이도 ${difficulty}`;
+};
 
 export const RoomDetailPage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const state = (location.state as RoomRouteState | undefined) ?? {};
+  const { roomId } = useParams<{ roomId: string }>();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [groupData, setGroupData] = useState<Awaited<
+    ReturnType<typeof getGroupDetail>
+  > | null>(null);
+  const [pdfList, setPdfList] = useState<PdfListItem[]>([]);
 
-  const room = state.room;
-  const examInfo = state.examInfo;
+  const fetchGroupDetail = useCallback(async () => {
+    if (!roomId) {
+      navigate(ROUTE_PATHS.HOME, { replace: true });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const [data, pdfData] = await Promise.all([
+        getGroupDetail(Number(roomId)),
+        getPdfList(Number(roomId)),
+      ]);
+      setGroupData(data);
+      setPdfList(pdfData.pdfList);
+    } catch (error) {
+      console.error('그룹 디테일 조회 실패:', error);
+      navigate(ROUTE_PATHS.HOME, { replace: true });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [navigate, roomId]);
 
   useEffect(() => {
-    if (!room) {
-      navigate(ROUTE_PATHS.HOME, { replace: true });
-    }
-  }, [navigate, room]);
+    fetchGroupDetail();
+  }, [fetchGroupDetail]);
 
-  if (!room) {
-    return null;
-  }
-
-  const groupName = room.roomName;
-  const examDate = examInfo?.examDate ?? '11.20';
-  const entranceCode = examInfo?.code ?? '0000';
-  const participantCount = room.participantCount ?? mateNames.length;
-  const characterId = room.characterId ?? 1;
+  const groupName = groupData?.group.name ?? '';
+  const examDate = groupData?.group.examDate
+    ? formatExamDate(groupData.group.examDate)
+    : '';
+  const entranceCode = groupData?.group.groupCode ?? '';
+  const participantCount = groupData?.group.memberCount ?? 0;
+  const characterId = useMemo(() => {
+    if (!groupData?.group.id) return 1;
+    return ((groupData.group.id - 1) % 9) + 1;
+  }, [groupData?.group.id]);
 
   const characterImage = useMemo(() => {
-    if (CHARACTER_IMAGES[characterId]) {
-      return CHARACTER_IMAGES[characterId];
-    }
-    return CHARACTER_IMAGES[1];
+    return CHARACTER_IMAGES[characterId] ?? CHARACTER_IMAGES[1];
   }, [characterId]);
 
-  const mates = useMemo(
-    () =>
-      Array.from(
-        { length: participantCount },
-        (_, index) => mateNames[index % mateNames.length]
-      ),
-    [participantCount]
-  );
+  const mates = useMemo(() => {
+    return groupData?.group.members ?? [];
+  }, [groupData?.group.members]);
 
-  const rankingData = useMemo(
-    () => [
-      { rank: 1, name: '멋쟁이사자처럼' },
-      { rank: 2, name: '야후' },
-      { rank: 3, name: '오오오' },
-      { rank: 4, name: '오오오' },
-      { rank: 5, name: '오오오' },
-    ],
-    []
-  );
-  const currentRank = 5;
+  const rankingData = useMemo(() => {
+    return (
+      groupData?.ranking.all_ranks.map((rank) => ({
+        rank: rank.position,
+        name: rank.nickname,
+      })) ?? []
+    );
+  }, [groupData?.ranking.all_ranks]);
 
-  const quizCards = useMemo(
-    () => [
-      {
-        difficulty: '난이도 상',
-        title: '퀴즈 챕터 1~3',
-        participantInfo: '5명 참여 중',
-      },
-      {
-        difficulty: '난이도 중',
-        title: '퀴즈 챕터 1~3',
-        participantInfo: '5명 참여 중',
-      },
-      {
-        difficulty: '난이도 하',
-        title: '퀴즈 챕터 1~3',
-        participantInfo: '5명 참여 중',
-      },
-    ],
-    []
-  );
+  const currentRank = groupData?.ranking.my_rank ?? 0;
 
-  const qnaData = useMemo(
-    () => [
-      {
+  const quizCards = useMemo(() => {
+    return (
+      groupData?.quizzes.map((quiz) => ({
+        id: quiz.id,
+        difficulty: getDifficultyLabel(quiz.difficulty),
+        title: quiz.title,
+        participantInfo: `${quiz.participants_count}명 참여 중`,
+      })) ?? []
+    );
+  }, [groupData?.quizzes]);
+
+  const qnaData = useMemo(() => {
+    return (
+      groupData?.qa_boards.map((qa) => ({
+        id: qa.board_id,
         tag: '오답풀이 및 질문',
-        title: '퀴즈 챕터 1~3',
-        performance: '19/20 (정답률: 95%)',
-      },
-      {
-        tag: '오답풀이 및 질문',
-        title: '퀴즈 챕터 1~3',
-        performance: '19/20 (정답률: 95%)',
-      },
-    ],
-    []
-  );
+        title: qa.title,
+        performance: qa.progress,
+      })) ?? []
+    );
+  }, [groupData?.qa_boards]);
 
-  const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
+  const pdfFiles = useMemo(() => {
+    return pdfList.map((pdf) => ({
+      id: pdf.id,
+      title: pdf.title,
+      fileUrl: pdf.fileUrl,
+    }));
+  }, [pdfList]);
 
-  const handleCopyCode = async () => {
-    try {
-      if (navigator.clipboard && 'writeText' in navigator.clipboard) {
-        await navigator.clipboard.writeText(entranceCode);
-      } else {
-        const textarea = document.createElement('textarea');
-        textarea.value = entranceCode;
-        textarea.setAttribute('readonly', '');
-        textarea.style.position = 'absolute';
-        textarea.style.left = '-9999px';
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-      }
-    } catch (error) {
-      console.error('입장 코드 복사 실패:', error);
-    }
+  const handlePdfClick = (fileUrl: string) => {
+    setSelectedPdfUrl(fileUrl);
   };
 
   const quizScrollRef = useRef<HTMLDivElement>(null);
@@ -188,6 +194,76 @@ export const RoomDetailPage = () => {
     };
   }, []);
 
+  const handleCopyCode = async () => {
+    try {
+      if (navigator.clipboard && 'writeText' in navigator.clipboard) {
+        await navigator.clipboard.writeText(entranceCode);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = entranceCode;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'absolute';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+    } catch (error) {
+      console.error('입장 코드 복사 실패:', error);
+    }
+  };
+
+  const handleDeleteGroup = async () => {
+    if (!roomId || !groupData) return;
+
+    try {
+      await deleteGroup(Number(roomId));
+      navigate(ROUTE_PATHS.HOME, { replace: true });
+    } catch (error) {
+      console.error('그룹 삭제 실패:', error);
+      // TODO: 에러 메시지를 사용자에게 표시
+    }
+  };
+
+  const handleFileSelect = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !roomId || !groupData) return;
+
+    // PDF 파일만 허용
+    if (
+      file.type !== 'application/pdf' &&
+      !file.name.toLowerCase().endsWith('.pdf')
+    ) {
+      alert('PDF 파일만 업로드 가능합니다.');
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      await uploadPdf(Number(roomId), file);
+      // 업로드 성공 후 그룹 디테일 다시 불러오기
+      await fetchGroupDetail();
+    } catch (error) {
+      console.error('PDF 업로드 실패:', error);
+      alert('PDF 업로드에 실패했습니다. 다시 시도해 주세요.');
+    } finally {
+      setIsUploading(false);
+      // 파일 입력 초기화
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  if (isLoading || !groupData) {
+    return null;
+  }
+
   return (
     <S.Wrapper>
       <S.Header>
@@ -215,24 +291,32 @@ export const RoomDetailPage = () => {
           </S.WelcomeHeader>
         </S.WelcomeCard>
 
-        <S.MateSection>
-          <S.MateInfo>
-            <S.MateTitle>Mate ({participantCount})</S.MateTitle>
-            <S.CopyCodeButton type="button" onClick={handleCopyCode}>
-              입장 코드 복사
-            </S.CopyCodeButton>
-          </S.MateInfo>
-          <S.MateList>
-            {mates.map((name, index) => (
-              <S.MateAvatar key={`${name}-${index}`}>
-                <S.MateAvatarImage>
-                  <img src={characterImage} alt={name} />
-                </S.MateAvatarImage>
-                <span>{name}</span>
-              </S.MateAvatar>
-            ))}
-          </S.MateList>
-        </S.MateSection>
+        <S.MateSectionWrapper>
+          <S.MateSection>
+            <S.MateInfo>
+              <S.MateTitle>Mate ({participantCount})</S.MateTitle>
+              <S.CopyCodeButton type="button" onClick={handleCopyCode}>
+                입장 코드 복사
+              </S.CopyCodeButton>
+            </S.MateInfo>
+            <S.MateList>
+              {mates.map((mate) => (
+                <S.MateAvatar key={mate.id}>
+                  <S.MateAvatarImage>
+                    <img src={characterImage} alt={mate.nickname} />
+                  </S.MateAvatarImage>
+                  <span>{mate.nickname}</span>
+                </S.MateAvatar>
+              ))}
+            </S.MateList>
+          </S.MateSection>
+          {groupData?.group.role === 'LEADER' && (
+            <S.DeleteButton type="button" onClick={handleDeleteGroup}>
+              <S.DeleteIcon />
+              삭제하기
+            </S.DeleteButton>
+          )}
+        </S.MateSectionWrapper>
       </S.HeaderSection>
 
       <S.Content>
@@ -244,9 +328,22 @@ export const RoomDetailPage = () => {
               <S.NewQuizTitle $variant="room">Quiz</S.NewQuizTitle>
             </S.NewQuizCard>
             <S.UploadCard>
-              <S.UploadLeft>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,application/pdf"
+                style={{ display: 'none' }}
+                onChange={handleFileChange}
+                disabled={isUploading}
+              />
+              <S.UploadLeft
+                onClick={handleFileSelect}
+                style={{ cursor: isUploading ? 'not-allowed' : 'pointer' }}
+              >
                 <S.UploadFolderImage src={folderImage} alt="folder" />
-                <S.UploadLeftLabel>PDF 파일 업로드</S.UploadLeftLabel>
+                <S.UploadLeftLabel>
+                  {isUploading ? '업로드 중...' : 'PDF 파일 업로드'}
+                </S.UploadLeftLabel>
               </S.UploadLeft>
               <S.UploadDivider />
               <S.UploadRight>
@@ -256,9 +353,22 @@ export const RoomDetailPage = () => {
                     <S.MoreIcon src={moreIcon} alt="더보기" />
                   </S.MoreButton>
                 </S.UploadRightHeader>
-                <S.UploadDescription>
-                  아직 업로드된 파일이 없어요!
-                </S.UploadDescription>
+                {pdfFiles.length === 0 ? (
+                  <S.UploadDescription>
+                    아직 업로드된 파일이 없어요!
+                  </S.UploadDescription>
+                ) : (
+                  <S.PdfList>
+                    {pdfFiles.map((pdf) => (
+                      <S.PdfItem
+                        key={pdf.id}
+                        onClick={() => handlePdfClick(pdf.fileUrl)}
+                      >
+                        {pdf.title}
+                      </S.PdfItem>
+                    ))}
+                  </S.PdfList>
+                )}
               </S.UploadRight>
             </S.UploadCard>
           </S.UtilityRow>
@@ -277,7 +387,7 @@ export const RoomDetailPage = () => {
               <S.QuizCardList ref={quizScrollRef}>
                 {quizCards.map((quiz) => (
                   <QuizCard
-                    key={`${quiz.difficulty}-${quiz.title}`}
+                    key={quiz.id}
                     difficulty={quiz.difficulty}
                     title={quiz.title}
                     participantInfo={quiz.participantInfo}
@@ -300,9 +410,9 @@ export const RoomDetailPage = () => {
               </S.EmptyState>
             ) : (
               <S.QnaCardList ref={qnaScrollRef}>
-                {qnaData.map((item, index) => (
+                {qnaData.map((item) => (
                   <QnACard
-                    key={`${item.title}-${index}`}
+                    key={item.id}
                     tag={item.tag}
                     title={item.title}
                     performance={item.performance}
@@ -340,7 +450,38 @@ export const RoomDetailPage = () => {
         isOpen={isQuizModalOpen}
         onClose={() => setIsQuizModalOpen(false)}
         onSubmit={(payload) => console.log('quiz 생성', payload)}
+        onSuccess={() => {
+          // 퀴즈 생성 성공 시 데이터 새로고침
+          fetchGroupDetail();
+        }}
+        pdfFiles={pdfFiles}
       />
+      {selectedPdfUrl && (
+        <S.PdfModalOverlay onClick={() => setSelectedPdfUrl(null)}>
+          <S.PdfModalContent onClick={(e) => e.stopPropagation()}>
+            <S.PdfModalHeader>
+              <S.PdfModalTitle>PDF 보기</S.PdfModalTitle>
+              <S.PdfModalCloseButton
+                type="button"
+                onClick={() => setSelectedPdfUrl(null)}
+              >
+                ✕
+              </S.PdfModalCloseButton>
+            </S.PdfModalHeader>
+            <S.PdfModalBody>
+              <iframe
+                src={selectedPdfUrl}
+                title="PDF Viewer"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  border: 'none',
+                }}
+              />
+            </S.PdfModalBody>
+          </S.PdfModalContent>
+        </S.PdfModalOverlay>
+      )}
     </S.Wrapper>
   );
 };
