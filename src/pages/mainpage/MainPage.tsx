@@ -430,8 +430,8 @@ const MainPage = () => {
 
       <S.Content>
         <S.LeftSection>
-          <S.QuizRoomSectionWrapper>
-            <S.QuizRoomSection>
+          <S.QuizRoomSectionWrapper $isEmpty={quizRooms.length === 0}>
+            <S.QuizRoomSection $isEmpty={quizRooms.length === 0}>
               <S.SectionTitle>Quiz Room</S.SectionTitle>
               <S.ScrollContainer ref={quizRoomScrollRef}>
                 {quizRooms.length === 0 ? (
@@ -467,8 +467,8 @@ const MainPage = () => {
             </S.QuizRoomSection>
           </S.QuizRoomSectionWrapper>
 
-          <S.QnASectionWrapper>
-            <S.QnASection>
+          <S.QnASectionWrapper $isEmpty={qnaPosts.length === 0}>
+            <S.QnASection $isEmpty={qnaPosts.length === 0}>
               <S.SectionTitle>Q&A 게시판</S.SectionTitle>
               <S.ScrollContainer ref={qnaScrollRef}>
                 {qnaPosts.length === 0 ? (

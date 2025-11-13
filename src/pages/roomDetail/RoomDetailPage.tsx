@@ -30,7 +30,10 @@ const formatExamDate = (dateString: string): string => {
   }
 };
 
-const getDifficultyLabel = (difficulty: string): string => {
+const getDifficultyLabel = (difficulty: string | null): string => {
+  if (!difficulty) {
+    return '사용자 지정';
+  }
   const difficultyMap: Record<string, string> = {
     상: '난이도 상',
     중: '난이도 중',
@@ -430,12 +433,12 @@ export const RoomDetailPage = () => {
       <QuizCreationModal
         isOpen={isQuizModalOpen}
         onClose={() => setIsQuizModalOpen(false)}
-        onSubmit={(payload) => console.log('quiz 생성', payload)}
         onSuccess={() => {
           // 퀴즈 생성 성공 시 데이터 새로고침
           fetchGroupDetail();
         }}
         pdfFiles={pdfFiles}
+        groupId={roomId ? Number(roomId) : undefined}
       />
       {selectedPdfUrl && (
         <S.PdfModalOverlay onClick={() => setSelectedPdfUrl(null)}>

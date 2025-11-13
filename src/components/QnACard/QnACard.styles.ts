@@ -7,18 +7,18 @@ export const Card = styled.div(({ theme }) => ({
   borderRadius: '16px',
   padding: '20px',
   height: '100%',
-  minWidth: '250px',
+  minWidth: '300px',
   flexShrink: 0,
   gap: '12px',
   boxSizing: 'border-box',
   '@media (max-width: 768px)': {
-    minWidth: '180px',
+    minWidth: '280px',
     padding: '16px',
     borderRadius: '12px',
     gap: '10px',
   },
   '@media (max-width: 480px)': {
-    minWidth: '160px',
+    minWidth: '260px',
     padding: '14px',
     borderRadius: '10px',
     gap: '8px',
@@ -43,7 +43,7 @@ export const Title = styled.h3(({ theme }) => ({
   ...theme.fonts.title,
   color: theme.colors.Font,
   margin: 0,
-  maxWidth: '160px',
+  maxWidth: '260px',
   display: '-webkit-box',
   WebkitLineClamp: 2,
   WebkitBoxOrient: 'vertical',
@@ -51,11 +51,12 @@ export const Title = styled.h3(({ theme }) => ({
   textOverflow: 'ellipsis',
   '@media (max-width: 768px)': {
     fontSize: '24px',
-    maxWidth: '140px',
+    maxWidth: '240px',
   },
   '@media (max-width: 480px)': {
     fontSize: '16px',
-    maxWidth: '120px',
+    maxWidth: '220px',
+    lineHeight: 1.2,
   },
 }));
 

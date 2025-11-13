@@ -7,7 +7,7 @@ export const Card = styled.div(({ theme }) => ({
   backgroundColor: 'rgba(255, 255, 255, 0.55)',
   borderRadius: '20px',
   padding: '24px',
-  minWidth: '220px',
+  width: '300px',
   flexShrink: 0,
   gap: '16px',
   boxSizing: 'border-box',
@@ -32,6 +32,18 @@ export const Card = styled.div(({ theme }) => ({
     position: 'relative',
     zIndex: 1,
   },
+  '@media (max-width: 768px)': {
+    width: '280px',
+    padding: '16px',
+    borderRadius: '12px',
+    gap: '10px',
+  },
+  '@media (max-width: 480px)': {
+    width: '250px',
+    padding: '14px',
+    borderRadius: '10px',
+    gap: '8px',
+  },
 }));
 
 export const Difficulty = styled.span(({ theme }) => ({
@@ -48,6 +60,10 @@ export const Title = styled.h3(({ theme }) => ({
   ...theme.fonts.title,
   color: theme.colors.hightlight,
   margin: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  maxWidth: '100%',
 }));
 
 export const ParticipantInfo = styled.span(({ theme }) => ({
