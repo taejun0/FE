@@ -1,6 +1,8 @@
 import { MouseEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@components/Button';
 import * as S from './ExamInfoModal.styles';
+import { buildRoomDetailPath } from '@constants/RouteConstants';
 
 export type ExamInfo = {
   id: number;
@@ -22,6 +24,8 @@ export const ExamInfoModal = ({
   exam,
   onClose,
 }: ExamInfoModalProps) => {
+  const navigate = useNavigate();
+
   if (!isOpen || !exam) return null;
 
   const handleOverlayClick = () => {
@@ -53,6 +57,11 @@ export const ExamInfoModal = ({
     }
   };
 
+  const handleConfirm = () => {
+    onClose();
+    navigate(buildRoomDetailPath(exam.id));
+  };
+
   return (
     <S.Overlay onClick={handleOverlayClick}>
       <S.Modal onClick={handleModalClick}>
@@ -81,7 +90,7 @@ export const ExamInfoModal = ({
         </S.Content>
 
         <S.Footer>
-          <Button type="button" variant="primary" onClick={onClose}>
+          <Button type="button" variant="primary" onClick={handleConfirm}>
             확인
           </Button>
         </S.Footer>
