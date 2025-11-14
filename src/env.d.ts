@@ -1,6 +1,7 @@
 declare interface ImportMetaEnv {
   readonly VITE_BASE_URL: string;
-  readonly VITE_USE_MOCK: string; //추가
+  readonly VITE_GOOGLE_ANALYTICS_ID?: string;
+  readonly MODE: string;
 }
 
 declare interface ImportMeta {

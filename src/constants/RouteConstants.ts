@@ -14,3 +14,8 @@ export const ROUTE_PATHS = {
 
 export const buildRoomDetailPath = (roomId: string | number) =>
   `/room/${roomId}`;
+
+export const buildQuizPath = (quizId: string | number) => `/quiz/${quizId}`;
+
+export const buildQuizQaPath = (quizId: string | number) =>
+  `/quiz/${quizId}/qa-room`;

@@ -177,142 +177,162 @@ export const LeftSection = styled.div({
   },
 });
 
-export const QuizRoomSectionWrapper = styled.div({
-  borderRadius: '20px',
-  boxShadow: '0px 1px 10px 0px rgba(91, 157, 255, 0.2)',
-  boxSizing: 'border-box',
-  overflow: 'visible',
-  margin: '8px',
-
-  display: 'flex',
-  flexDirection: 'column',
-  '@media (max-width: 768px)': {
-    borderRadius: '16px',
-  },
-  '@media (max-width: 480px)': {
-    borderRadius: '12px',
-  },
-});
-
-export const QuizRoomSection = styled.div(({ theme }) => ({
-  position: 'relative',
-  borderRadius: '20px',
-  padding: '32px 32px 32px 32px',
-  boxSizing: 'border-box',
-  width: '100%',
-  background: 'transparent',
-  display: 'flex',
-  flexDirection: 'column',
-  overflow: 'visible',
-
-  '&::before': {
-    content: "''",
-    position: 'absolute',
-    inset: 0,
+export const QuizRoomSectionWrapper = styled.div<{ $isEmpty?: boolean }>(
+  ({ $isEmpty }) => ({
     borderRadius: '20px',
-    padding: '5px',
-    background:
-      'linear-gradient(180deg, rgba(234, 234, 234, 0.1) 0%, rgba(155, 179, 255, 0.3) 50%, rgba(91, 157, 255, 0.2) 100%)',
+    boxShadow: $isEmpty ? 'none' : '0px 1px 10px 0px rgba(91, 157, 255, 0.2)',
     boxSizing: 'border-box',
-    WebkitMask:
-      'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-    WebkitMaskComposite: 'xor',
-    maskComposite: 'exclude',
-    pointerEvents: 'none',
-    zIndex: 0,
-  },
-  '> *': {
-    position: 'relative',
-    zIndex: 1,
-  },
-  '@media (max-width: 768px)': {
-    padding: '24px 24px 24px 24px',
-    borderRadius: '16px',
-    '&::before': {
+    overflow: 'visible',
+    margin: '8px',
+
+    display: 'flex',
+    flexDirection: 'column',
+    '@media (max-width: 768px)': {
       borderRadius: '16px',
-      padding: '4px',
     },
-  },
-  '@media (max-width: 480px)': {
-    padding: '20px 20px 20px 20px',
-    borderRadius: '12px',
-    '&::before': {
+    '@media (max-width: 480px)': {
       borderRadius: '12px',
-      padding: '4px',
     },
-  },
-}));
+  })
+);
 
-export const QnASectionWrapper = styled.div({
-  borderRadius: '20px',
-  boxShadow: '0px 1px 10px 0px rgba(91, 157, 255, 0.2)',
-  boxSizing: 'border-box',
-  overflow: 'visible',
-
-  margin: '8px',
-
-  display: 'flex',
-  flexDirection: 'column',
-  '@media (max-width: 768px)': {
-    borderRadius: '16px',
-  },
-  '@media (max-width: 480px)': {
-    borderRadius: '12px',
-  },
-});
-
-export const QnASection = styled.div(({ theme }) => ({
-  position: 'relative',
-  borderRadius: '20px',
-  padding: '32px 32px 32px 32px',
-  paddingRight: '16px',
-  boxSizing: 'border-box',
-  width: '100%',
-  background: 'transparent',
-  display: 'flex',
-  flexDirection: 'column',
-  overflow: 'visible',
-  gap: '24px',
-
-  '&::before': {
-    content: "''",
-    position: 'absolute',
-    inset: 0,
+export const QuizRoomSection = styled.div<{ $isEmpty?: boolean }>(
+  ({ theme, $isEmpty }) => ({
+    position: 'relative',
     borderRadius: '20px',
-    padding: '5px',
-    background:
-      'linear-gradient(180deg, rgba(234, 234, 234, 0.1) 0%, rgba(155, 179, 255, 0.3) 50%, rgba(91, 157, 255, 0.2) 100%)',
+    padding: '32px 32px 32px 32px',
     boxSizing: 'border-box',
-    WebkitMask:
-      'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-    WebkitMaskComposite: 'xor',
-    maskComposite: 'exclude',
-    pointerEvents: 'none',
-    zIndex: 0,
-  },
-  '> *': {
-    position: 'relative',
-    zIndex: 1,
-  },
-  '@media (max-width: 768px)': {
-    padding: '24px 24px 24px 24px',
-    paddingRight: '12px',
-    borderRadius: '16px',
-    '&::before': {
+    width: '100%',
+    background: 'transparent',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'visible',
+
+    '&::before': $isEmpty
+      ? {}
+      : {
+          content: "''",
+          position: 'absolute',
+          inset: 0,
+          borderRadius: '20px',
+          padding: '5px',
+          background:
+            'linear-gradient(180deg, rgba(234, 234, 234, 0.1) 0%, rgba(155, 179, 255, 0.3) 50%, rgba(91, 157, 255, 0.2) 100%)',
+          boxSizing: 'border-box',
+          WebkitMask:
+            'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+          WebkitMaskComposite: 'xor',
+          maskComposite: 'exclude',
+          pointerEvents: 'none',
+          zIndex: 0,
+        },
+    '> *': {
+      position: 'relative',
+      zIndex: 1,
+    },
+    '@media (max-width: 768px)': {
+      padding: '24px 24px 24px 24px',
       borderRadius: '16px',
-      padding: '4px',
+      '&::before': $isEmpty
+        ? {}
+        : {
+            borderRadius: '16px',
+            padding: '4px',
+          },
     },
-  },
-  '@media (max-width: 480px)': {
-    padding: '20px 20px 20px 20px',
-    paddingRight: '10px',
-    borderRadius: '12px',
-    '&::before': {
+    '@media (max-width: 480px)': {
+      padding: '20px 20px 20px 20px',
       borderRadius: '12px',
-      padding: '4px',
+      '&::before': $isEmpty
+        ? {}
+        : {
+            borderRadius: '12px',
+            padding: '4px',
+          },
     },
-  },
-}));
+  })
+);
+
+export const QnASectionWrapper = styled.div<{ $isEmpty?: boolean }>(
+  ({ $isEmpty }) => ({
+    borderRadius: '20px',
+    boxShadow: $isEmpty ? 'none' : '0px 1px 10px 0px rgba(91, 157, 255, 0.2)',
+    boxSizing: 'border-box',
+    overflow: 'visible',
+
+    margin: '8px',
+
+    display: 'flex',
+    flexDirection: 'column',
+    '@media (max-width: 768px)': {
+      borderRadius: '16px',
+    },
+    '@media (max-width: 480px)': {
+      borderRadius: '12px',
+    },
+  })
+);
+
+export const QnASection = styled.div<{ $isEmpty?: boolean }>(
+  ({ theme, $isEmpty }) => ({
+    position: 'relative',
+    borderRadius: '20px',
+    padding: '32px 32px 32px 32px',
+    paddingRight: '16px',
+    boxSizing: 'border-box',
+    width: '100%',
+    background: 'transparent',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'visible',
+    gap: '24px',
+
+    '&::before': $isEmpty
+      ? {}
+      : {
+          content: "''",
+          position: 'absolute',
+          inset: 0,
+          borderRadius: '20px',
+          padding: '5px',
+          background:
+            'linear-gradient(180deg, rgba(234, 234, 234, 0.1) 0%, rgba(155, 179, 255, 0.3) 50%, rgba(91, 157, 255, 0.2) 100%)',
+          boxSizing: 'border-box',
+          WebkitMask:
+            'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+          WebkitMaskComposite: 'xor',
+          maskComposite: 'exclude',
+          pointerEvents: 'none',
+          zIndex: 0,
+        },
+    '> *': {
+      position: 'relative',
+      zIndex: 1,
+    },
+    '@media (max-width: 768px)': {
+      padding: '24px 24px 24px 24px',
+      paddingRight: '12px',
+      borderRadius: '16px',
+      '&::before': $isEmpty
+        ? {}
+        : {
+            borderRadius: '16px',
+            padding: '4px',
+          },
+    },
+    '@media (max-width: 480px)': {
+      padding: '20px 20px 20px 20px',
+      paddingRight: '10px',
+      borderRadius: '12px',
+      '&::before': $isEmpty
+        ? {}
+        : {
+            borderRadius: '12px',
+            padding: '4px',
+          },
+    },
+  })
+);
 
 export const SectionTitle = styled.h2(({ theme }) => ({
   ...theme.fonts.title,

@@ -9,7 +9,11 @@ import qeImage from '../../assets/images/qe.png';
 import { QuizCard } from '@components/QuizCard';
 import { QnACard } from '@components/QnACard';
 import { CHARACTER_IMAGES } from '@constants/characterImages';
-import { ROUTE_PATHS } from '@constants/RouteConstants';
+import {
+  ROUTE_PATHS,
+  buildQuizPath,
+  buildQuizQaPath,
+} from '@constants/RouteConstants';
 import { ExamInfo } from '@components/ExamInfoModal/ExamInfoModal';
 import { QuizCreationModal } from '@components/QuizCreationModal';
 import {
@@ -17,7 +21,9 @@ import {
   uploadPdf,
   getPdfList,
   PdfListItem,
+  startQuiz,
 } from '@services/homeService';
+import { trackEvent } from '@utils/analytics';
 
 const formatExamDate = (dateString: string): string => {
   try {
@@ -30,7 +36,10 @@ const formatExamDate = (dateString: string): string => {
   }
 };
 
-const getDifficultyLabel = (difficulty: string): string => {
+const getDifficultyLabel = (difficulty: string | null): string => {
+  if (!difficulty) {
+    return '사용자 지정';
+  }
   const difficultyMap: Record<string, string> = {
     상: '난이도 상',
     중: '난이도 중',
@@ -123,6 +132,7 @@ export const RoomDetailPage = () => {
     return (
       groupData?.qa_boards.map((qa) => ({
         id: qa.board_id,
+        boardId: qa.board_id,
         tag: '오답풀이 및 질문',
         title: qa.title,
         performance: qa.progress,
@@ -245,6 +255,29 @@ export const RoomDetailPage = () => {
         fileInputRef.current.value = '';
       }
     }
+  };
+
+  const handleQuizSolve = async (quizId: number) => {
+    try {
+      const result = await startQuiz({ quiz_id: quizId });
+      // quiz_result_id를 localStorage에 저장
+      localStorage.setItem('quiz_result_id', result.quiz_result_id.toString());
+      
+      // GA 이벤트 추적
+      trackEvent('Quiz', 'Start', `quiz_${quizId}`, quizId);
+      
+      // 퀴즈 페이지로 이동
+      navigate(buildQuizPath(quizId));
+    } catch (error) {
+      console.error('퀴즈 시작 실패:', error);
+      alert('퀴즈를 시작할 수 없습니다. 다시 시도해 주세요.');
+    }
+  };
+
+  const handleQnAEnter = (boardId: number) => {
+    // GA 이벤트 추적
+    trackEvent('Q&A', 'Enter', `board_${boardId}`, boardId);
+    navigate(buildQuizQaPath(boardId));
   };
 
   if (isLoading || !groupData) {
@@ -372,7 +405,7 @@ export const RoomDetailPage = () => {
                     difficulty={quiz.difficulty}
                     title={quiz.title}
                     participantInfo={quiz.participantInfo}
-                    onSolve={() => console.log('문제 풀기 클릭')}
+                    onSolve={() => handleQuizSolve(quiz.id)}
                   />
                 ))}
               </S.QuizCardList>
@@ -397,7 +430,7 @@ export const RoomDetailPage = () => {
                     tag={item.tag}
                     title={item.title}
                     performance={item.performance}
-                    onEnter={() => console.log('Q&A 입장')}
+                    onEnter={() => handleQnAEnter(item.boardId)}
                   />
                 ))}
               </S.QnaCardList>
@@ -430,12 +463,12 @@ export const RoomDetailPage = () => {
       <QuizCreationModal
         isOpen={isQuizModalOpen}
         onClose={() => setIsQuizModalOpen(false)}
-        onSubmit={(payload) => console.log('quiz 생성', payload)}
         onSuccess={() => {
           // 퀴즈 생성 성공 시 데이터 새로고침
           fetchGroupDetail();
         }}
         pdfFiles={pdfFiles}
+        groupId={roomId ? Number(roomId) : undefined}
       />
       {selectedPdfUrl && (
         <S.PdfModalOverlay onClick={() => setSelectedPdfUrl(null)}>

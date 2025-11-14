@@ -8,43 +8,44 @@ const SplashPage = () => {
   return (
     <S.Container>
       <S.BackgroundDecoration>
-        {/* 좌위 - 두 번째로 큰 크기 (가로의 28%), 좌우반전 */}
+        {/* 좌위 - 1440x1024 기준: 441px, Top: 71px, Left: -22px, Rotation: -180°, Opacity: 40% */}
         <S.QuestionMark
-          $top="5%"
-          $left="3%"
-          $size="28vw"
+          $top="6.93%"
+          $left="-1.53%"
+          $size="30.625vw"
           $opacity={1}
+          $rotation={0}
           src={questionMarkImg}
           alt=""
         />
-        {/* 우위 - 작은 크기 (가로의 22%) */}
+        {/* 우위 - 1440x1024 기준: 224px, Top: 45px, Left: 1123px, Opacity: 40% */}
         <S.QuestionMark
-          $top="5%"
-          $right="3%"
-          $size="22vw"
+          $top="4.39%"
+          $left="77.99%"
+          $size="15.556vw"
           $opacity={1}
-          $flip={true}
           src={questionMarkImg}
+          $flip={true}
           alt=""
         />
-        {/* 좌아래 - 작은 크기 (가로의 22%) */}
+        {/* 좌아래 - 1440x1024 기준: 198px, Top: 756px, Left: 101px, Opacity: 40% */}
         <S.QuestionMark
-          $bottom="5%"
-          $left="3%"
-          $size="22vw"
+          $top="73.83%"
+          $left="7.01%"
+          $size="13.75vw"
           $opacity={1}
-          $flip={true}
           src={questionMarkImg}
+          $flip={true}
           alt=""
         />
-        {/* 우아래 - 가장 큰 크기 (가로의 35%) */}
+        {/* 우아래 - 1440x1024 기준: 697px, Top: 361px, Left: 907px, Opacity: 40% */}
         <S.QuestionMark
-          $bottom="5%"
-          $right="3%"
-          $size="35vw"
+          $top="35.25%"
+          $left="62.99%"
+          $size="48.333vw"
           $opacity={1}
-          $flip={true}
           src={questionMarkImg}
+          $flip={true}
           alt=""
         />
       </S.BackgroundDecoration>
