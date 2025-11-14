@@ -11,7 +11,10 @@ import { NewRoomModal } from '@components/NewRoomModal';
 import { EntryCodeModal } from '@components/EntryCodeModal';
 import { ExamInfoModal, ExamInfo } from '@components/ExamInfoModal';
 import { ExitRoomModal } from '@components/ExitRoomModal';
-import { buildRoomDetailPath } from '@constants/RouteConstants';
+import {
+  buildRoomDetailPath,
+  buildQuizQaPath,
+} from '@constants/RouteConstants';
 import { CHARACTER_IMAGES } from '@constants/characterImages';
 import {
   getHomeData,
@@ -99,7 +102,13 @@ const MainPage = () => {
   const [examSchedules, setExamSchedules] = useState<ExamInfo[]>([]);
   const [quizRooms, setQuizRooms] = useState<QuizRoom[]>([]);
   const [qnaPosts, setQnaPosts] = useState<
-    Array<{ id: number; tag: string; title: string; performance: string }>
+    Array<{
+      id: number;
+      quizId: number;
+      tag: string;
+      title: string;
+      performance: string;
+    }>
   >([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -183,8 +192,12 @@ const MainPage = () => {
     }
   };
 
-  const handleQnAEnter = (postId: number) => {
-    console.log('Q&A 입장:', postId);
+  const handleQnAEnter = (quizId: number) => {
+    if (!quizId) {
+      console.error('Q&A 입장 실패: quizId가 없습니다.');
+      return;
+    }
+    navigate(buildQuizQaPath(quizId));
   };
 
   const handleNewRoomClick = () => {
@@ -307,8 +320,10 @@ const MainPage = () => {
         });
 
       // qa_board를 qnaPosts로 변환
+      // API에서 제공하는 id를 quiz_id로 사용
       const convertedQnaPosts = data.qa_board.map((qa) => ({
         id: qa.id,
+        quizId: qa.id, // API에서 제공하는 id를 quiz_id로 사용
         tag: '오답풀이 및 질문',
         title: qa.title,
         performance: qa.progress,
@@ -485,7 +500,7 @@ const MainPage = () => {
                       tag={post.tag}
                       title={post.title}
                       performance={post.performance}
-                      onEnter={() => handleQnAEnter(post.id)}
+                      onEnter={() => handleQnAEnter(post.quizId)}
                     />
                   ))
                 )}

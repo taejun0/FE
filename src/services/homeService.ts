@@ -9,7 +9,7 @@ export interface HomeGroup {
 }
 
 export interface HomeQaBoard {
-  id: number;
+  id: number; // API에서 제공하는 id 값 (quiz_id로 사용)
   title: string;
   progress: string;
 }
@@ -423,6 +423,40 @@ export const createUserQuiz = async (
     return response.data;
   } catch (error) {
     console.error('사용자 지정 퀴즈 생성 실패:', error);
+    throw error;
+  }
+};
+
+// 퀴즈 응시 시작 관련 타입
+export interface StartQuizPayload {
+  quiz_id: number;
+}
+
+export interface StartQuizData {
+  quiz_result_id: number;
+  message: string;
+}
+
+export interface StartQuizApiResponse {
+  isSuccess: boolean;
+  code: string;
+  httpStatus: number;
+  message: string;
+  data: StartQuizData;
+  timestamp: string;
+}
+
+export const startQuiz = async (
+  payload: StartQuizPayload
+): Promise<StartQuizData> => {
+  try {
+    const response = await apiFetch<StartQuizApiResponse>('/quiz/start', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return response.data;
+  } catch (error) {
+    console.error('퀴즈 응시 시작 실패:', error);
     throw error;
   }
 };
