@@ -426,3 +426,37 @@ export const createUserQuiz = async (
     throw error;
   }
 };
+
+// 퀴즈 응시 시작 관련 타입
+export interface StartQuizPayload {
+  quiz_id: number;
+}
+
+export interface StartQuizData {
+  quiz_result_id: number;
+  message: string;
+}
+
+export interface StartQuizApiResponse {
+  isSuccess: boolean;
+  code: string;
+  httpStatus: number;
+  message: string;
+  data: StartQuizData;
+  timestamp: string;
+}
+
+export const startQuiz = async (
+  payload: StartQuizPayload
+): Promise<StartQuizData> => {
+  try {
+    const response = await apiFetch<StartQuizApiResponse>('/quiz/start', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return response.data;
+  } catch (error) {
+    console.error('퀴즈 응시 시작 실패:', error);
+    throw error;
+  }
+};
