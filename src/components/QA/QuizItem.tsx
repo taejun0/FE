@@ -12,7 +12,6 @@ interface QuizItemProps {
 const QuizItem: React.FC<QuizItemProps> = ({ question }) => {
   const isOX = question.type === "OX";
   const isMultipleChoice = question.type === "객관식";
-  //   const isMultipleChoice = question.type === "MULTIPLE_CHOICE";
   const isShortAnswer = question.type === "단답형";
   const correctAnswer = question.correct_answer;
 
@@ -26,12 +25,10 @@ const QuizItem: React.FC<QuizItemProps> = ({ question }) => {
     return (
       <>
         <S.OXAnswerContainer>
-          {/* O 카드: 정답이면 $isCorrectAnswer=true */}
           <S.OXCard $isCorrectAnswer={correctAnswer === optionO}>
             {optionO}
           </S.OXCard>
 
-          {/* X 카드: 정답이면 $isCorrectAnswer=true */}
           <S.OXCard $isCorrectAnswer={correctAnswer === optionX}>
             {optionX}
           </S.OXCard>
@@ -45,8 +42,7 @@ const QuizItem: React.FC<QuizItemProps> = ({ question }) => {
     if (isOX) return null;
 
     if (isMultipleChoice) {
-      // 💡 객관식: 정답 코드를 인덱스로 변환하여 하이라이트
-      // (예: "C" -> 인덱스 2)
+      // 객관식: 정답 코드를 인덱스로 변환하여 하이라이트
       const correctIndex = correctAnswer.charCodeAt(0) - "A".charCodeAt(0);
 
       return (
@@ -66,7 +62,7 @@ const QuizItem: React.FC<QuizItemProps> = ({ question }) => {
     }
 
     if (isShortAnswer) {
-      // 💡 단답형: correct_answer를 실제 정답 텍스트로 가정하고 직접 표시
+      //단답형: correct_answer를 실제 정답 텍스트로 가정하고 직접 표시
       return (
         <S.CorrectAnswerBox>
           <S.AnswerLabel>정답:</S.AnswerLabel> {correctAnswer}
@@ -74,10 +70,9 @@ const QuizItem: React.FC<QuizItemProps> = ({ question }) => {
       );
     }
 
-    return null; // Fallback
+    return null;
   };
 
-  // 3. 최종 렌더링
   return (
     <S.QuizItemWrapper>
       <S.QuestionHeader>

@@ -5,62 +5,98 @@ import logoQroomText from "../../assets/images/Logo.png";
 import ggoom1 from "../../assets/images/ggoom/ggoom1.png";
 import * as S from "./QuizResultPage.styles";
 
-type SubmitResult = {
+const baseURL = import.meta.env.VITE_BASE_URL;
+const token = localStorage.getItem("qroom_access_token") || "FALLBACK_TOKEN";
+
+type QuizResultDetail = {
+  quiz_id: number;
+  quiz_title: string;
+  group_name: string;
+  score: number;
+  correct_count: number;
+  total_questions: number;
+  created_at: string;
+};
+
+type QuizResultAnswer = {
   quiz_result_id: number;
-  score: number; // 퍼센트(%)
-  correct_count: number; // 맞힌 개수
-  total_questions: number; // 총 문항
-  status: string;
+  question_id: number;
+  question_number: number;
+  question_text: string;
+  type: string;
+  explanation: string;
+  options: { id: number; option_text: string }[];
+  user_answer: string;
+  correct_answer: string;
+  is_correct: boolean;
 };
 
 type SubmitResponse = {
   isSuccess: boolean;
-  data: { result: SubmitResult; message?: string };
-};
-
-type ResultState = {
-  resultId: number;
-  correct: number;
-  total: number;
-  scorePercent: number;
-  message?: string;
+  code: string;
+  httpStatus: number;
+  message: string;
+  data: {
+    quiz_result: QuizResultDetail;
+    answers: QuizResultAnswer[];
+  };
+  timeStamp: string;
 };
 
 export default function QuizResultPage() {
-  const { id } = useParams(); // /quizzes/:id/result
+  const { id } = useParams();
   const navigate = useNavigate();
-  const state = (useLocation().state || {}) as Partial<ResultState>;
 
-  // 1) 제출 직후엔 navigate(state)로 값이 들어오고,
-  // 2) 새로고침 등으로 state가 없으면 서버에서 재조회
-  const [correct, setCorrect] = useState<number | null>(state.correct ?? null);
-  const [total, setTotal] = useState<number | null>(state.total ?? null);
-  const [scorePercent, setScorePercent] = useState<number | null>(
-    state.scorePercent ?? null
-  );
-  const [message, setMessage] = useState<string>(state.message ?? "");
+  const [correct, setCorrect] = useState<number | null>(null);
+  const [total, setTotal] = useState<number | null>(null);
+  const [scorePercent, setScorePercent] = useState<number | null>(null);
+  const [quizResultId, setQuizResultId] = useState<number | null>(null);
+  const [quizTitle, setQuizTitle] = useState<string>("");
+  const [groupName, setGroupName] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    if (correct != null && total != null && scorePercent != null) return;
+    const current_quiz_result_id = Number(
+      localStorage.getItem("quiz_result_id") || 0
+    );
+
+    if (!current_quiz_result_id) {
+      alert("퀴즈 결과 ID를 찾을 수 없습니다.");
+      navigate("/", { replace: true });
+      return;
+    }
+
+    setQuizResultId(current_quiz_result_id);
 
     (async () => {
-      // 결과 재조회 API (엔드포인트만 조정)
-      const { data } = await axios.get<SubmitResponse>(
-        `/api/quizzes/${id}/result`
-      );
-      const r = data.data.result;
-      setCorrect(r.correct_count);
-      setTotal(r.total_questions);
-      setScorePercent(r.score);
-      setMessage(data.data.message ?? "");
-    })().catch((e) => {
-      console.error(e);
-      alert("결과를 불러오지 못했습니다.");
-      navigate("/", { replace: true });
-    });
-  }, [correct, total, scorePercent, id, navigate]);
+      try {
+        const url = `${baseURL}quiz/result/${current_quiz_result_id}`;
 
-  if (correct == null || total == null || scorePercent == null) {
+        const { data } = await axios.get<SubmitResponse>(url, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const r = data.data.quiz_result;
+
+        setCorrect(r.correct_count);
+        setTotal(r.total_questions);
+        setScorePercent(r.score);
+        setQuizTitle(r.quiz_title);
+        setGroupName(r.group_name);
+
+        setIsLoading(false);
+      } catch (e) {
+        console.error(e);
+        alert("결과를 불러오지 못했습니다.");
+        navigate("/", { replace: true });
+      }
+    })();
+  }, [navigate]);
+
+  // 로딩 상태 처리
+  if (isLoading || correct == null || total == null || scorePercent == null) {
     return (
       <S.Page>
         <S.Wrapper>결과 계산 중...</S.Wrapper>
@@ -73,8 +109,8 @@ export default function QuizResultPage() {
       <S.Logo src={logoQroomText} alt="Qroom" />
 
       <S.Wrapper>
-        <S.Group>그룹명</S.Group>
-        <S.Title>챕터 1~3 질문</S.Title>
+        <S.Group>{groupName}</S.Group>
+        <S.Title>{quizTitle}</S.Title>
 
         <S.Circle>
           <S.CircleText>총평</S.CircleText>
@@ -91,7 +127,7 @@ export default function QuizResultPage() {
           <S.PrimaryButton
             onClick={() =>
               navigate(`/quiz/${id}/review`, {
-                state: { correct, total, scorePercent },
+                state: { correct, total, scorePercent, quizResultId },
               })
             }
           >

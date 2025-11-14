@@ -41,7 +41,7 @@ export const Group = styled.p`
   font-weight: 500;
   margin: 0 0 6px;
   font-size: 36px;
-  padding: 14px;
+  padding: 10px;
 `;
 
 export const Title = styled.h1`
@@ -50,7 +50,8 @@ export const Title = styled.h1`
   color: #539bff;
   margin: 0 0 18px;
   font-size: 50px;
-  padding: 18px;
+  padding: 14px;
+  line-height: 1.4;
 `;
 
 export const Circle = styled.div`
@@ -91,12 +92,13 @@ export const Mascot = styled.img`
 `;
 
 export const Comment = styled.p`
-  font-family: 'OnglThinker, Pretendard, -apple-system, BlinkMacSystemFont, "Malgun Gothic", "맑은 고딕", sans-serif';
+  font-family: "OnglThinker", Pretendard, -apple-system, BlinkMacSystemFont,
+    "Malgun Gothic", "맑은 고딕", sans-serif;
   color: #539bff;
-  font-weight: 600;
-  font-size: 38px;
-  margin: 8px 0 4px;
-  padding: 20px 0 50px;
+  font-weight: 400;
+  font-size: 48px;
+  margin: 10px 0 4px;
+  padding: 24px 0 50px;
 `;
 
 export const Actions = styled.div`

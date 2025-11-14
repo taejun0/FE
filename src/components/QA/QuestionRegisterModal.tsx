@@ -1,5 +1,3 @@
-// src/components/QA/QuestionRegisterModal.tsx
-
 import React, { useState } from "react";
 import axios from "axios";
 import * as S from "@pages/QA/QuizQaRoomPage.styles";
@@ -22,7 +20,7 @@ export default function QuestionRegisterModal({
   onPostSuccess,
 }: QuestionRegisterModalProps) {
   const [content, setContent] = useState("");
-  const [isAnonymous, setIsAnonymous] = useState(true); // 💡 이미지에서 익명이 기본 체크되어 있음
+  const [isAnonymous, setIsAnonymous] = useState(true);
 
   const handleSubmit = async () => {
     if (!content.trim()) {
@@ -33,7 +31,6 @@ export default function QuestionRegisterModal({
     try {
       const url = `${baseURL}qa/post`;
 
-      // 💡 백엔드로 보낼 데이터 객체
       const postData = {
         boardId: boardId,
         content: content,
@@ -49,8 +46,8 @@ export default function QuestionRegisterModal({
       });
 
       alert("질문이 성공적으로 등록되었습니다.");
-      onPostSuccess(); // 성공 시 부모 컴포넌트의 리로드 함수 호출
-      onClose(); // 모달 닫기
+      onPostSuccess();
+      onClose();
     } catch (error) {
       console.error("질문 등록 중 오류 발생:", error);
       alert("질문 등록에 실패했습니다.");

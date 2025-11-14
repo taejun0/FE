@@ -1,5 +1,3 @@
-// src/utils/qaTypes.ts (최종 수정된 전체 코드)
-
 // 1. 사용자 정보 타입
 export type UserInfo = {
   nickname: string;
@@ -33,13 +31,10 @@ export type Option = {
 export type QuizQuestion = {
   id: number;
   type: "OX" | "객관식" | "단답형";
-  //   type: string;
   question_text: string;
   correct_answer: string;
   explanation: string;
   options?: Option[];
-
-  // 💡 프론트에서 필요한 추가 필드
   question_id?: number;
   user_answer?: string | null;
   is_correct?: boolean;
@@ -53,7 +48,7 @@ export type QuizMeta = {
   round: number;
   total_questions: number;
   group_name: string;
-  questions: QuizQuestion[]; // 💡 문제 배열이 quiz 객체 안에 있습니다.
+  questions: QuizQuestion[];
 };
 
 // 7. QA 게시판 메타 정보 타입 (API 응답의 "qa_board" 필드)
@@ -66,7 +61,7 @@ export type QaBoardMeta = {
 
 // 8. API 응답 데이터 구조 정의 (최상위 "data" 내부)
 export type QaRoomResponseData = {
-  quiz: QuizMeta; // 💡 quiz 안에 questions가 포함되어 있습니다.
+  quiz: QuizMeta; //
   qa_board: QaBoardMeta;
 };
 
@@ -78,6 +73,3 @@ export type QaRoomResponse = {
   message: string;
   data: QaRoomResponseData;
 };
-
-// 10. MOCK_QUESTIONS 제거 (API 연동을 위해)
-// export const MOCK_QUESTIONS = [...] <-- 제거됨

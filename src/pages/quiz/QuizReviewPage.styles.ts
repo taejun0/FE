@@ -15,7 +15,7 @@ const c = {
 
 const shadowCard = "0 10px 30px rgba(56, 91, 194, 0.12)";
 
-/* ===== 배경 ===== */
+//배경
 export const Page = styled.div`
   min-height: 100dvh;
   display: flex;
@@ -46,8 +46,6 @@ export const Wrapper = styled.div`
 
 export const Header = styled.div`
   display: flex;
-  /* display: grid; */
-  /* grid-template-columns: 1fr auto 1fr; */
   align-items: center;
   padding: 20px 0;
 `;
@@ -62,6 +60,7 @@ export const Group = styled.p`
   padding: 10px;
   font-size: 26px;
   color: #565555;
+  line-height: 1.4;
 `;
 
 export const Title = styled.h1`
@@ -70,10 +69,10 @@ export const Title = styled.h1`
   font-weight: 700;
   color: #565555;
   padding: 10px;
+  line-height: 1.4;
 `;
 
 export const ScoreBox = styled.p`
-  /* justify-self: end; */
   padding-left: 70px;
   font-weight: 600;
   color: #539bff;
@@ -102,6 +101,7 @@ export const QTitle = styled.h3`
   font-weight: 700;
   color: #565555;
   padding-bottom: 10px;
+  line-height: 1.4;
 `;
 
 export const OXRow = styled.div`
@@ -184,7 +184,6 @@ export const Actions = styled.div`
 `;
 
 export const Button = styled.button`
-  /* height: 70px; */
   width: 480px;
   padding: 18px 70px;
   border-radius: 12px;

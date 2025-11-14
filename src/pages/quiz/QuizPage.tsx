@@ -11,9 +11,8 @@ import * as S from "./QuizPage.styles";
 const STORAGE = "quiz_answers_v1";
 const baseURL = import.meta.env.VITE_BASE_URL;
 const token = localStorage.getItem("qroom_access_token") || "FALLBACK_TOKEN";
-const quiz_result_id = localStorage.getItem("quiz_result_id") || 0;
 
-// 응답 타입(명세 기반)
+// 응답 타입
 type SubmitResponse = {
   isSuccess: boolean;
   code: string;
@@ -22,7 +21,7 @@ type SubmitResponse = {
   data: {
     result: {
       quiz_result_id: number;
-      score: number; // 퍼센트
+      score: number;
       correct_count: number;
       total_questions: number;
       status: "completed" | string;
@@ -42,6 +41,11 @@ const getErrorMessage = (e: unknown): string => {
     return resData || anyErr?.message || "제출 중 오류가 발생했습니다.";
   }
   return "제출 중 오류가 발생했습니다.";
+};
+
+// 보기 인덱스(0, 1, 2, 3...)를 'A', 'B', 'C', 'D'... 문자로 변환하는 헬퍼 함수
+const indexToLetter = (index: number): string => {
+  return String.fromCharCode(65 + index);
 };
 
 export default function QuizPage() {
@@ -87,6 +91,9 @@ export default function QuizPage() {
   // 제출
   const onSubmit = async () => {
     try {
+      const current_quiz_result_id = Number(
+        localStorage.getItem("quiz_result_id") || 0
+      );
       // 모든 문항 답변 체크
       if (questions.length === 0) return;
       const answeredCount = Object.keys(answers).length;
@@ -95,26 +102,51 @@ export default function QuizPage() {
         return;
       }
 
-      // 명세에 맞춘 payload 변환
+      if (current_quiz_result_id === 0) {
+        alert("퀴즈 결과 ID가 유효하지 않습니다. 퀴즈를 다시 시작해 주세요.");
+        return;
+      }
+
+      const transformedAnswers = questions.map((question, i) => {
+        const answer = answers[question.id];
+        const question_number = i + 1; // 1부터 시작하는 문제 번호
+
+        let user_answer: string = answer.value as string;
+
+        if (question.type === "객관식" && answer.value) {
+          const options = question.options;
+
+          if (options && options.length > 0) {
+            const selectedIndex = options.findIndex((opt) => {
+              return opt.text.trim() === (answer.value as string).trim();
+            });
+
+            if (selectedIndex !== -1) {
+              user_answer = indexToLetter(selectedIndex);
+            } else {
+              console.error(
+                `Error: Could not map answer value to option letter for question ID ${question.id}`
+              );
+              const trimmedValue = (answer.value as string).trim();
+              const match = trimmedValue.match(/^\((.)\)/);
+              user_answer = match ? match[1] : trimmedValue;
+            }
+          }
+        }
+
+        return {
+          question_number: question_number,
+          user_answer: user_answer,
+        };
+      });
+
       const payload: {
         quiz_result_id: number;
-        quiz_id: number;
-        answers: { question_id: number; type: string; user_answer: string }[];
+        answers: { question_number: number; user_answer: string }[];
       } = {
-        quiz_result_id: Number(quiz_result_id),
-        quiz_id: quizId,
-        answers: Object.values(answers).map((a) => ({
-          question_id: a.questionId,
-          type: a.type, // "OX" | "객관식" | "단답형"
-          user_answer: a.value as string, // <-- 타입 에러 해결
-        })),
+        quiz_result_id: current_quiz_result_id,
+        answers: transformedAnswers,
       };
-
-      // (선택) 기존에 생성된 resultId가 있으면 포함
-      // const existingResultId =
-      //   location?.state?.resultId ??
-      //   (Number(localStorage.getItem(`quiz_result_id:${quizId}`)) || undefined);
-      // if (existingResultId) payload.quiz_result_id = existingResultId;
 
       const url = `${baseURL}quiz/submit`;
 
@@ -128,27 +160,7 @@ export default function QuizPage() {
         throw new Error(res.data?.message || "제출에 실패했습니다.");
       }
 
-      const r = res.data.data.result;
-
-      // resultId를 저장(추후 재시도/리뷰 등에 활용 가능)
-      localStorage.setItem(
-        `quiz_result_id:${quizId}`,
-        String(r.quiz_result_id)
-      );
-      // 필요 시 답안 캐시 제거
-      // localStorage.removeItem(`${STORAGE}:${quizId}`);
-
-      // 결과 페이지로 이동(기존 네비게이션 포맷 유지)
-      navigate(`/quiz/${quizId}/result`, {
-        state: {
-          resultId: r.quiz_result_id,
-          correct: r.correct_count,
-          total: r.total_questions,
-          scorePercent: r.score, // 명세에서 score가 60처럼 %로 옴
-          message: res.data.data.message ?? "채점이 완료되었습니다.",
-        },
-        replace: true,
-      });
+      navigate(`/quiz/${quizId}/result`);
     } catch (err: unknown) {
       console.error(err);
       alert(getErrorMessage(err));

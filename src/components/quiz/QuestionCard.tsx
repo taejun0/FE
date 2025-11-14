@@ -1,4 +1,3 @@
-// src/components/quiz/QuestionCard.tsx
 import React from "react";
 import type { Question } from "@utils/quizTypes";
 import * as S from "@pages/quiz/QuizPage.styles";

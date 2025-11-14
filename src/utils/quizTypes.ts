@@ -12,7 +12,7 @@ export type QuizMeta = {
   id: number;
   title: string;
   total_questions: number;
-  groupName: string; // 💡 그룹명 추가
+  groupName: string;
 };
 
 export type Question = {
@@ -30,6 +30,9 @@ export type Answer = {
 };
 
 export type SubmitPayload = {
-  quizId: number;
-  answers: { questionId: number; answer: string | null }[];
+  quiz_result_id: number;
+  answers: {
+    question_number: number;
+    user_answer: string;
+  }[];
 };

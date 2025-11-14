@@ -1,6 +1,5 @@
 import styled from "styled-components";
 
-/* ====== 색/그림자 토큰 ====== */
 const c = {
   sky1: "#F0F7FF",
   sky2: "#E8F1FF",
@@ -108,7 +107,7 @@ export const QuestionBox = styled.section`
   }
 `;
 
-/* 객관식 옵션 */
+//객관식 옵션
 export const Option = styled.label<{ selected?: boolean }>`
   display: flex;
   padding: 18px;
@@ -128,7 +127,7 @@ export const Option = styled.label<{ selected?: boolean }>`
   color: ${({ selected }) => (selected ? c.blue : "#565555")};
 `;
 
-/* 단답 입력 */
+// 단답 입력
 export const Input = styled.input`
   width: 100%;
   padding: 12px 14px;
@@ -142,7 +141,7 @@ export const Input = styled.input`
   }
 `;
 
-/* ===== OX 전용 ===== */
+// OX 전용
 export const OXGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, minmax(180px, 1fr));

@@ -1,23 +1,18 @@
-// src/pages/QuizQaRoomPage.styles.tsx
-
 import styled from "styled-components";
 import q from "../../assets/images/qe.png";
 
-// 공통 색상 및 스타일 정의
 const c = {
-  blue: "#6A96FF", // 메인 블루
-  blueBg: "#F4F8FF", // QA 영역 배경 및 퀴즈 답변 박스 배경
-  stroke: "#E6EEF6", // 경계선
-  text: "#111827", // 진한 텍스트
-  card: "#FFFFFF", // 일반 카드 배경
-  sub: "#6B7280", // 서브 텍스트 // QA 이미지 스타일에 맞춘 세부 색상
-
+  blue: "#6A96FF",
+  blueBg: "#F4F8FF",
+  stroke: "#E6EEF6",
+  text: "#111827",
+  card: "#FFFFFF",
+  sub: "#6B7280",
   qaCardBg: "#FFFFFF",
-  commentBg: "#F4F7FC", // 댓글 박스 배경 (옅은 하늘색)
-  commentText: "#374151", // QA 텍스트 색상
+  commentBg: "#F4F7FC",
+  commentText: "#374151",
 };
 
-const shadowCard = "0 10px 30px rgba(56, 91, 194, 0.12)";
 const shadowLight = "0 6px 18px rgba(17, 24, 39, 0.04)";
 
 /* ============================================
@@ -69,7 +64,7 @@ export const MyPageText = styled.h2`
   font-size: 14px;
   font-style: normal;
   font-weight: 400;
-  line-height: 34px; /* 141.667% */
+  line-height: 34px;
   letter-spacing: 0.38px;
 `;
 
@@ -80,6 +75,7 @@ export const Logo = styled.img`
   position: sticky;
   top: 28px;
   left: 56px;
+  cursor: pointer;
 `;
 
 export const TextBox = styled.div`
@@ -114,14 +110,11 @@ export const PageContainer = styled.div`
 export const AppGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
-  /* gap: 24px; */
-  /* align-items: start; */
 `;
 
 /** 왼쪽 문제 리스트 스크롤 영역 */
 export const LeftScroll = styled.div`
   overflow-y: auto;
-  /* height: calc(100dvh - 180px); */
   height: 660px;
   display: flex;
   align-items: center;
@@ -136,7 +129,7 @@ export const LeftScroll = styled.div`
 /** 오른쪽 단일 QA 게시판 영역 */
 export const RightBoard = styled.div`
   position: sticky;
-  top: 120px; /* 헤더 아래에 고정되도록 */
+  top: 120px;
   padding: 8px 0;
   width: 600px;
   height: 600px;
@@ -157,13 +150,9 @@ export const RightBoard = styled.div`
  * ============================================ */
 export const QuizItemWrapper = styled.div`
   width: 700px;
-  /* border: 1px solid ${c.stroke}; */
   border-bottom: 3px solid rgba(0, 0, 0, 0.1);
   padding: 50px 20px 260px 20px;
   margin-bottom: 40px;
-  /* border-radius: 12px; */
-  /* background-color: ${c.card}; */
-  /* box-shadow: ${shadowLight}; */
   transition: all 0.3s;
 `;
 
