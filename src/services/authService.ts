@@ -36,6 +36,7 @@ export const signup = async (
     return await apiFetch<SignupResponse>('/auth/signup', {
       method: 'POST',
       body: JSON.stringify(payload),
+      skipAuth: true,
     });
   } catch (error) {
     if (error instanceof ApiError) {
@@ -50,6 +51,7 @@ export const login = async (payload: LoginPayload): Promise<LoginResponse> => {
     return await apiFetch<LoginResponse>('/auth/login', {
       method: 'POST',
       body: JSON.stringify(payload),
+      skipAuth: true,
     });
   } catch (error) {
     if (error instanceof ApiError) {
