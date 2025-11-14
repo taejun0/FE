@@ -15,11 +15,11 @@ export default function QuestionCard({
   answerValue,
   onAnswer,
 }: Props) {
-  const { type, text, options } = question;
+  const { type, text, options, question_number } = question;
 
   return (
     <S.QuestionBox>
-      <h1>Q1.</h1>
+      <h1>Q{question_number}.</h1>
       <h2>{text}</h2>
 
       {type === "OX" && (

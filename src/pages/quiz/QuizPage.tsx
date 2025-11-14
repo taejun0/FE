@@ -10,6 +10,8 @@ import * as S from "./QuizPage.styles";
 
 const STORAGE = "quiz_answers_v1";
 const baseURL = import.meta.env.VITE_BASE_URL;
+const token = localStorage.getItem("qroom_access_token") || "FALLBACK_TOKEN";
+const quiz_result_id = localStorage.getItem("quiz_result_id") || 0;
 
 // 응답 타입(명세 기반)
 type SubmitResponse = {
@@ -82,13 +84,6 @@ export default function QuizPage() {
   const onPrev = () => setIndex((i) => Math.max(0, i - 1));
   const onNext = () => setIndex((i) => Math.min(questions.length - 1, i + 1));
 
-  // 공통: 토큰 찾기(프로젝트마다 키가 다를 수 있어 널리 쓰는 키들을 확인)
-  const getAuthToken = () =>
-    localStorage.getItem("accessToken") ||
-    localStorage.getItem("token") ||
-    localStorage.getItem("Authorization") ||
-    "";
-
   // 제출
   const onSubmit = async () => {
     try {
@@ -102,10 +97,11 @@ export default function QuizPage() {
 
       // 명세에 맞춘 payload 변환
       const payload: {
-        quiz_result_id?: number;
+        quiz_result_id: number;
         quiz_id: number;
         answers: { question_id: number; type: string; user_answer: string }[];
       } = {
+        quiz_result_id: Number(quiz_result_id),
         quiz_id: quizId,
         answers: Object.values(answers).map((a) => ({
           question_id: a.questionId,
@@ -115,17 +111,17 @@ export default function QuizPage() {
       };
 
       // (선택) 기존에 생성된 resultId가 있으면 포함
-      const existingResultId =
-        location?.state?.resultId ??
-        (Number(localStorage.getItem(`quiz_result_id:${quizId}`)) || undefined);
-      if (existingResultId) payload.quiz_result_id = existingResultId;
+      // const existingResultId =
+      //   location?.state?.resultId ??
+      //   (Number(localStorage.getItem(`quiz_result_id:${quizId}`)) || undefined);
+      // if (existingResultId) payload.quiz_result_id = existingResultId;
 
-      const token = getAuthToken();
-      const url = `${baseURL.replace(/\/$/, "")}/quiz/submit`;
+      const url = `${baseURL}quiz/submit`;
 
       const res = await axios.post<SubmitResponse>(url, payload, {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (!res.data?.isSuccess) {

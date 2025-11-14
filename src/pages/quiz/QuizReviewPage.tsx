@@ -4,9 +4,30 @@ import logoQroomText from "../../assets/images/Logo.png";
 import axios from "axios";
 import * as S from "./QuizReviewPage.styles";
 
+// API 설정 (환경 변수 및 토큰 사용)
+const baseURL = import.meta.env.VITE_BASE_URL;
+const token = localStorage.getItem("qroom_access_token") || "FALLBACK_TOKEN";
+const quiz_result_id =
+  localStorage.getItem("quiz_result_id") || "FALLBACK_TOKEN";
+
+// 로컬 스토리지에서 퀴즈 결과 ID를 가져올 키 정의
+// const LAST_QUIZ_RESULT_ID_KEY = "qroom_last_quiz_result_id";
+
+// API 명세서에 맞춰 타입 정의 업데이트
+type ReviewHead = {
+  quiz_id: number;
+  group_name: string; // API에 새로 추가된 필드
+  score: number;
+  correct_count: number;
+  total_questions: number;
+  created_at: string | null;
+};
+
+// API 명세서에 맞춰 타입 정의 업데이트
 type ReviewAnswer = {
   quiz_result_id: number;
   question_id: number;
+  question_number: number; // API에 새로 추가된 필드 (문제 번호)
   question_text: string;
   type: "OX" | "객관식" | "단답형";
   explanation: string;
@@ -16,16 +37,12 @@ type ReviewAnswer = {
   is_correct: boolean;
 };
 
-type ReviewHead = {
-  quiz_id: number;
-  score: number;
-  correct_count: number;
-  total_questions: number;
-  created_at: string | null;
-};
-
+// API 응답 전체 구조
 type ReviewResponse = {
   isSuccess: boolean;
+  code: string;
+  httpStatus: number;
+  message: string;
   data: {
     quiz_result: ReviewHead;
     answers: ReviewAnswer[];
@@ -33,101 +50,69 @@ type ReviewResponse = {
 };
 
 export default function QuizReviewPage() {
-  const { resultId } = useParams();
+  //   const { resultId: paramResultId } = useParams(); // URL 파라미터에서 resultId를 가져옴 (백업)
   const navigate = useNavigate();
+
+  // 로컬 스토리지에서 ID를 우선적으로 가져오고, 없으면 URL 파라미터 사용
+  //   const storedId = localStorage.getItem(LAST_QUIZ_RESULT_ID_KEY);
+  //   const quizResultId = storedId || paramResultId; // 이 변수를 API 호출에 사용
 
   const [loading, setLoading] = useState(true);
   const [head, setHead] = useState<ReviewHead | null>(null);
   const [items, setItems] = useState<ReviewAnswer[]>([]);
 
-  // 실제 연동 시 아래 주석을 풀고 mock useEffect를 제거하면 됨
-  // useEffect(() => {
-  //   (async () => {
-  //     try {
-  //       const { data } = await axios.get<ReviewResponse>(`/api/quiz-results/${resultId}`);
-  //       setHead(data.data.quiz_result);
-  //       setItems(data.data.answers);
-  //     } catch (e) {
-  //       console.error(e);
-  //       alert("정답/오답 데이터를 불러오지 못했어요.");
-  //       navigate(-1);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   })();
-  // }, [resultId, navigate]);
-
   useEffect(() => {
-    // 목데이터
-    const mockData = {
-      quiz_result: {
-        quiz_id: 19,
-        score: 60,
-        correct_count: 3,
-        total_questions: 5,
-        created_at: null,
-      },
-      answers: [
-        {
-          quiz_result_id: 5,
-          question_id: 6,
-          question_text: "회원은 여러 상품을 주문할 수 있다. (O/X)",
-          type: "OX" as const,
-          explanation: "회원과 주문은 일대다 관계다.",
-          options: [
-            { id: 1, option_text: "O" },
-            { id: 2, option_text: "X" },
-          ],
-          user_answer: "O",
-          correct_answer: "X",
-          is_correct: false,
-        },
-        {
-          quiz_result_id: 5,
-          question_id: 7,
-          question_text: "주문과 상품의 관계는?",
-          type: "객관식" as const,
-          explanation:
-            "주문과 상품은 다대다 관계이며, 이를 주문상품 엔티티로 풀었다.",
-          options: [
-            { id: 3, option_text: "1. 일대다" },
-            { id: 4, option_text: "2. 다대다" },
-            { id: 5, option_text: "3. 일대일" },
-            { id: 6, option_text: "4. 다대일" },
-          ],
-          user_answer: "3",
-          correct_answer: "3",
-          is_correct: true,
-        },
-        {
-          quiz_result_id: 5,
-          question_id: 8,
-          question_text: "상품의 종류는?",
-          type: "단답형" as const,
-          explanation: "상품은 세 가지 종류로 구분된다.",
-          options: [],
-          user_answer: "도메인 모델",
-          correct_answer: "도서, 음반, 영화",
-          is_correct: false,
-        },
-        {
-          quiz_result_id: 5,
-          question_id: 8,
-          question_text: "상품의 종류는?",
-          type: "단답형" as const,
-          explanation: "상품은 세 가지 종류로 구분된다.",
-          options: [],
-          user_answer: "도메인 모델",
-          correct_answer: "도서, 음반, 영화",
-          is_correct: false,
-        },
-      ],
+    // 퀴즈 결과 ID 유효성 검사: ID가 로컬 스토리지나 URL에서 모두 발견되지 않으면 에러 처리
+    if (!quiz_result_id) {
+      console.error(
+        "퀴즈 결과 ID가 로컬 스토리지나 URL에서 발견되지 않았습니다."
+      );
+      alert("퀴즈 결과 ID를 찾을 수 없습니다.");
+      setLoading(false);
+      navigate("/home");
+      return;
+    }
+
+    const fetchReviewData = async () => {
+      // API 설정 확인
+      if (!baseURL || token === "FALLBACK_TOKEN") {
+        console.error("API baseURL 또는 인증 토큰이 설정되지 않았습니다.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const url = `${baseURL}quiz/result/${quiz_result_id}`; // local storage/param ID 사용
+        console.log(`API 호출: ${url}`);
+
+        // 실제 API 호출
+        const { data: response } = await axios.get<ReviewResponse>(url, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.isSuccess) {
+          setHead(response.data.quiz_result);
+          setItems(response.data.answers);
+        } else {
+          // API 호출은 성공했으나 isSuccess가 false인 경우 (서버 비즈니스 로직 오류)
+          console.error("API 응답 오류:", response.message);
+          alert(`정답/오답 데이터를 불러오지 못했어요: ${response.message}`);
+          navigate(-1);
+        }
+      } catch (e) {
+        console.error("API 요청 중 오류 발생:", e);
+        // 네트워크 또는 서버 오류
+        alert("정답/오답 데이터를 불러오지 못했어요. (네트워크/서버 오류)");
+        navigate(-1);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    setHead(mockData.quiz_result);
-    setItems(mockData.answers);
-    setLoading(false);
-  }, []);
+    fetchReviewData();
+  }, [quiz_result_id, navigate]); // quizResultId를 의존성 배열에 추가
 
   if (loading) {
     return (
@@ -144,8 +129,9 @@ export default function QuizReviewPage() {
       <S.Wrapper>
         <S.Header>
           <S.NameBox>
-            <S.Group>그룹명</S.Group>
-            <S.Title>챕터 1~3 질문</S.Title>
+            {/* API에서 받은 group_name을 사용하여 그룹명을 표시 */}
+            <S.Group>{head?.group_name}</S.Group>
+            <S.Title>퀴즈 결과 리뷰</S.Title> {/* 퀴즈 제목은 임시로 표시 */}
           </S.NameBox>
           <S.ScoreBox>
             <p>총평 </p>
@@ -155,8 +141,9 @@ export default function QuizReviewPage() {
           </S.ScoreBox>
         </S.Header>
 
-        {items.map((q, idx) => {
-          const num = idx + 1;
+        {items.map((q) => {
+          // API에서 받은 question_number를 사용하여 문제 번호 표시
+          const num = q.question_number;
 
           return (
             <S.Block key={q.question_id}>
@@ -170,17 +157,19 @@ export default function QuizReviewPage() {
                   <S.OXRow>
                     {["O", "X"].map((mark) => {
                       const isUserSelected = q.user_answer === mark;
+
+                      // 정답 표시 로직 개선: 선택한 답이 정답인 경우 'correct', 오답인 경우 'wrong'
+                      let correctness: "correct" | "wrong" | undefined =
+                        undefined;
+                      if (isUserSelected) {
+                        correctness = q.is_correct ? "correct" : "wrong";
+                      } else if (mark === q.correct_answer) {
+                        // 사용자가 선택하지 않았더라도 정답 자체는 파란색으로 표시 (추가 피드백)
+                        correctness = "correct";
+                      }
+
                       return (
-                        <S.OXOption
-                          key={mark}
-                          correct={
-                            isUserSelected
-                              ? q.is_correct
-                                ? "correct"
-                                : "wrong"
-                              : undefined
-                          }
-                        >
+                        <S.OXOption key={mark} correct={correctness}>
                           {mark}
                         </S.OXOption>
                       );
@@ -194,21 +183,28 @@ export default function QuizReviewPage() {
               {q.type === "객관식" && (
                 <>
                   {q.options.map((opt) => {
+                    // user_answer가 opt.id 또는 opt.option_text와 일치하는지 확인
                     const isUserSelected =
-                      q.user_answer === String(opt.id) ||
-                      q.user_answer === opt.option_text;
+                      String(opt.id) === q.user_answer ||
+                      opt.option_text === q.user_answer;
+                    const isCorrectAnswer =
+                      String(opt.id) === q.correct_answer ||
+                      opt.option_text === q.correct_answer;
+
+                    // 정답 표시 로직 개선:
+                    let correctness: "correct" | "wrong" | undefined =
+                      undefined;
+
+                    if (isUserSelected) {
+                      // 사용자가 선택한 경우
+                      correctness = q.is_correct ? "correct" : "wrong";
+                    } else if (isCorrectAnswer) {
+                      // 사용자가 선택하지 않았더라도 정답인 경우 (파란색으로 표시)
+                      correctness = "correct";
+                    }
 
                     return (
-                      <S.OptionRow
-                        key={opt.id}
-                        correct={
-                          isUserSelected
-                            ? q.is_correct
-                              ? "correct"
-                              : "wrong"
-                            : undefined
-                        }
-                      >
+                      <S.OptionRow key={opt.id} correct={correctness}>
                         {opt.option_text}
                       </S.OptionRow>
                     );
@@ -220,9 +216,12 @@ export default function QuizReviewPage() {
               {/* 단답형: 내 답은 정오에 따라, 정답 배지는 항상 파랑 */}
               {q.type === "단답형" && (
                 <>
+                  {/* 내 답 표시 */}
                   <S.AnswerBadge ok={q.is_correct}>
                     내 답: {q.user_answer ?? "미응답"}
                   </S.AnswerBadge>
+
+                  {/* 정답과 오답이 다를 경우에만 정답 표시 */}
                   {!q.is_correct && (
                     <S.CorrectBadge>정답: {q.correct_answer}</S.CorrectBadge>
                   )}
@@ -234,7 +233,10 @@ export default function QuizReviewPage() {
         })}
       </S.Wrapper>
       <S.Actions>
-        <S.PrimaryButton onClick={() => navigate(`/qa`)}>
+        {/* URL 파라미터를 사용하여 QA 게시판으로 이동 (quiz_id를 사용한다고 가정) */}
+        <S.PrimaryButton
+          onClick={() => navigate(`/quiz/${head?.quiz_id}/qa-room`)}
+        >
           QA 게시판 이동
         </S.PrimaryButton>
         <S.Button onClick={() => navigate("/home")}>나가기</S.Button>

@@ -1,11 +1,11 @@
-// src/utils/qaTypes.ts
+// src/utils/qaTypes.ts (최종 수정된 전체 코드)
 
 // 1. 사용자 정보 타입
 export type UserInfo = {
   nickname: string;
 };
 
-// 2. QA 댓글 타입 (API 응답 구조 반영)
+// 2. QA 댓글 타입
 export type QaComment = {
   id: number;
   content: string;
@@ -13,7 +13,7 @@ export type QaComment = {
   created_at: string;
 };
 
-// 3. QA 게시글 타입 (API 응답 구조 반영)
+// 3. QA 게시글 타입
 export type QaPost = {
   id: number;
   title: string;
@@ -21,26 +21,31 @@ export type QaPost = {
   user: UserInfo;
   created_at: string;
   comments: QaComment[];
-  // 💡 API에 `question_index` 같은 정보가 없으므로,
-  // 💡 프론트에서 임시 매핑을 위해 이 필드는 제외하고 로직으로 처리합니다.
 };
 
-// 4. 퀴즈 문제 타입 (API 응답의 questions 배열은 현재 비어있지만, 추후 데이터가 채워질 것을 가정)
+// 4. 객관식 옵션 타입
+export type Option = {
+  id: number;
+  option_text: string;
+};
+
+// 5. 퀴즈 문제 타입
 export type QuizQuestion = {
-  question_id: number;
-  question_text: string;
+  id: number;
   type: "OX" | "객관식" | "단답형";
-  explanation: string;
-  options?: { id: number; option_text: string }[];
-  user_answer: string | null;
+  //   type: string;
+  question_text: string;
   correct_answer: string;
-  is_correct: boolean;
+  explanation: string;
+  options?: Option[];
 
-  // 💡 프론트엔드에서 매핑 후 사용할 QA 게시글 필드 (API 응답에는 없음)
-  qa_board: QaPost[];
+  // 💡 프론트에서 필요한 추가 필드
+  question_id?: number;
+  user_answer?: string | null;
+  is_correct?: boolean;
 };
 
-// 5. API 응답 데이터 구조 정의
+// 6. 퀴즈 메타 정보 타입 (API 응답의 "quiz" 필드)
 export type QuizMeta = {
   id: number;
   title: string;
@@ -48,9 +53,10 @@ export type QuizMeta = {
   round: number;
   total_questions: number;
   group_name: string;
-  questions: QuizQuestion[];
+  questions: QuizQuestion[]; // 💡 문제 배열이 quiz 객체 안에 있습니다.
 };
 
+// 7. QA 게시판 메타 정보 타입 (API 응답의 "qa_board" 필드)
 export type QaBoardMeta = {
   board_id: number;
   board_title: string;
@@ -58,12 +64,13 @@ export type QaBoardMeta = {
   posts: QaPost[];
 };
 
+// 8. API 응답 데이터 구조 정의 (최상위 "data" 내부)
 export type QaRoomResponseData = {
-  quiz: QuizMeta;
+  quiz: QuizMeta; // 💡 quiz 안에 questions가 포함되어 있습니다.
   qa_board: QaBoardMeta;
 };
 
-// 6. API 통합 조회 응답 타입 (최상위 구조)
+// 9. API 통합 조회 응답 타입 (최상위 구조)
 export type QaRoomResponse = {
   isSuccess: boolean;
   code: string;
@@ -72,47 +79,5 @@ export type QaRoomResponse = {
   data: QaRoomResponseData;
 };
 
-// 7. 목데이터 (API의 questions 필드가 비어있으므로, 임시 문제 목록을 유지합니다.)
-export const MOCK_QUESTIONS: QuizQuestion[] = [
-  {
-    question_id: 1,
-    question_text: "Q1. 자료구조 1차 시험지에서 자료구조의 정의를 논하시오.",
-    type: "OX" as const,
-    explanation: "자료구조는 데이터를 효율적으로 관리 및 접근하는 방법입니다.",
-    options: [
-      { id: 1, option_text: "O" },
-      { id: 2, option_text: "X" },
-    ],
-    user_answer: "O",
-    correct_answer: "O",
-    is_correct: true,
-    qa_board: [], // API 응답으로 대체될 예정
-  },
-  {
-    question_id: 2,
-    question_text: "Q2. 큐(Queue)와 스택(Stack)의 차이점은 무엇인가? (객관식)",
-    type: "객관식" as const,
-    explanation: "큐는 FIFO, 스택은 LIFO 방식입니다.",
-    options: [
-      { id: 1, option_text: "1. FIFO vs LIFO" },
-      { id: 2, option_text: "2. LIFO vs FIFO" },
-      { id: 3, option_text: "3. 모두 FIFO" },
-      { id: 4, option_text: "4. 모두 LIFO" },
-    ],
-    user_answer: "1",
-    correct_answer: "1",
-    is_correct: true,
-    qa_board: [],
-  },
-  {
-    question_id: 3,
-    question_text: "Q3. 이진 탐색 트리의 장점을 3가지 서술하시오. (서술형)",
-    type: "단답형" as const,
-    explanation: "탐색 속도가 빠르고, 정렬된 순서를 유지합니다.",
-    options: [],
-    user_answer: "탐색속도 빠름",
-    correct_answer: "탐색속도 빠름, 삽입 용이, 메모리 효율적",
-    is_correct: false,
-    qa_board: [],
-  },
-];
+// 10. MOCK_QUESTIONS 제거 (API 연동을 위해)
+// export const MOCK_QUESTIONS = [...] <-- 제거됨

@@ -91,6 +91,7 @@ export const Mascot = styled.img`
 `;
 
 export const Comment = styled.p`
+  font-family: 'OnglThinker, Pretendard, -apple-system, BlinkMacSystemFont, "Malgun Gothic", "맑은 고딕", sans-serif';
   color: #539bff;
   font-weight: 600;
   font-size: 38px;

@@ -29,16 +29,29 @@ export function useQuizFetch(quizId: number) {
   const [questions, setQuestions] = useState<Question[]>([]);
 
   useEffect(() => {
+    const token =
+      localStorage.getItem("qroom_access_token") || "FALLBACK_TOKEN";
+    console.log(token);
     (async () => {
       try {
         let envelope: ApiEnvelope;
 
-        if (USE_MOCK) {
-          envelope = quizDetailMock;
-        } else {
-          envelope = (await axios.get<ApiEnvelope>(`${baseURL}quiz/${quizId}`))
-            .data;
-        }
+        // if (USE_MOCK) {
+        //   envelope = quizDetailMock;
+        // } else {
+
+        // envelope = (await axios.get<ApiEnvelope>(`${baseURL}quiz/${quizId}`))
+        //   .data;
+        envelope = (
+          await axios.get<ApiEnvelope>(`${baseURL}quiz/${quizId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+        ).data;
+
+        // }
+        console.log(envelope);
 
         if (!envelope.isSuccess) {
           console.error("API Error:", envelope);
@@ -60,6 +73,7 @@ export function useQuizFetch(quizId: number) {
         const formatted: Question[] = questions.map((q) => ({
           id: q.id,
           type: q.type as Question["type"],
+          question_number: q.question_number,
           text: q.question_text,
           options: q.options?.map((o) => ({ id: o.id, text: o.option_text })),
         }));

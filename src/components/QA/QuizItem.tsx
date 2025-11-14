@@ -1,65 +1,98 @@
-// src/components/QuizItem.tsx
+// src/components/QuizItem.tsx (최종 수정된 전체 코드)
+
 import React from "react";
 import { QuizQuestion } from "@utils/qaTypes";
-import QaPostList from "./QaPostList";
-import {
-  QuizQaPairContainer,
-  LeftColumn,
-  RightColumn,
-  QuizItemWrapper,
-  AnswerBox,
-} from "@pages/QA/QuizQaRoomPage.styles";
+import * as S from "@pages/QA/QuizQaRoomPage.styles";
 
 interface QuizItemProps {
   question: QuizQuestion;
   index: number;
 }
 
-const QuizItem: React.FC<QuizItemProps> = ({ question, index }) => {
+const QuizItem: React.FC<QuizItemProps> = ({ question }) => {
+  const isOX = question.type === "OX";
+  const isMultipleChoice = question.type === "객관식";
+  //   const isMultipleChoice = question.type === "MULTIPLE_CHOICE";
+  const isShortAnswer = question.type === "단답형";
+  const correctAnswer = question.correct_answer;
+
+  // 1. OX 문제 전용 렌더링 (정답만 파란색으로 하이라이트)
+  const OXRenderer = () => {
+    if (!isOX) return null;
+
+    const optionO = "O";
+    const optionX = "X";
+
+    return (
+      <>
+        <S.OXAnswerContainer>
+          {/* O 카드: 정답이면 $isCorrectAnswer=true */}
+          <S.OXCard $isCorrectAnswer={correctAnswer === optionO}>
+            {optionO}
+          </S.OXCard>
+
+          {/* X 카드: 정답이면 $isCorrectAnswer=true */}
+          <S.OXCard $isCorrectAnswer={correctAnswer === optionX}>
+            {optionX}
+          </S.OXCard>
+        </S.OXAnswerContainer>
+      </>
+    );
+  };
+
+  // 2. 객관식/단답형 렌더링
+  const DefaultAnswerRenderer = () => {
+    if (isOX) return null;
+
+    if (isMultipleChoice) {
+      // 💡 객관식: 정답 코드를 인덱스로 변환하여 하이라이트
+      // (예: "C" -> 인덱스 2)
+      const correctIndex = correctAnswer.charCodeAt(0) - "A".charCodeAt(0);
+
+      return (
+        <div style={{ marginTop: "20px" }}>
+          {question.options?.map((option, index) => {
+            // 현재 옵션의 인덱스가 정답 인덱스와 일치하는지 확인
+            const isCorrect = index === correctIndex;
+
+            return (
+              <S.OptionItem key={option.id} $isCorrect={isCorrect}>
+                {option.option_text}
+              </S.OptionItem>
+            );
+          })}
+        </div>
+      );
+    }
+
+    if (isShortAnswer) {
+      // 💡 단답형: correct_answer를 실제 정답 텍스트로 가정하고 직접 표시
+      return (
+        <S.CorrectAnswerBox>
+          <S.AnswerLabel>정답:</S.AnswerLabel> {correctAnswer}
+        </S.CorrectAnswerBox>
+      );
+    }
+
+    return null; // Fallback
+  };
+
+  // 3. 최종 렌더링
   return (
-    <QuizQaPairContainer>
-      {/* 1. 좌측 영역: 퀴즈 문제 */}
-      <LeftColumn>
-        <h1
-          style={{ marginBottom: "30px", fontSize: "24px", color: "#111827" }}
-        >
-          문제 {index + 1}
-        </h1>
+    <S.QuizItemWrapper>
+      <S.QuestionHeader>
+        <S.QuestionTitle>
+          Q{question.id}. <br />
+          {question.question_text}
+        </S.QuestionTitle>
+      </S.QuestionHeader>
 
-        <QuizItemWrapper $isDone={true}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "10px",
-            }}
-          >
-            <h3 style={{ margin: 0, fontSize: "18px", color: "#333" }}>
-              Q{index + 1}. {question.question_text}
-            </h3>
-          </div>
+      {isOX ? <OXRenderer /> : <DefaultAnswerRenderer />}
 
-          <AnswerBox>
-            **내 답변:** {question.user_answer ?? "미응답"} (정답:{" "}
-            {question.correct_answer})
-          </AnswerBox>
-
-          <div style={{ marginTop: "15px", color: "#666", fontSize: "14px" }}>
-            **해설:** {question.explanation}
-          </div>
-        </QuizItemWrapper>
-      </LeftColumn>
-
-      {/* 2. 우측 영역: 현재 문제의 QA 게시판 */}
-      <RightColumn>
-        <QaPostList
-          questionId={question.question_id}
-          qaPosts={question.qa_board}
-          questionTitle={question.question_text}
-        />
-      </RightColumn>
-    </QuizQaPairContainer>
+      <S.Explanation>
+        <S.ExplanationLabel>해설:</S.ExplanationLabel> {question.explanation}
+      </S.Explanation>
+    </S.QuizItemWrapper>
   );
 };
 
