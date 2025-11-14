@@ -9,7 +9,7 @@ export interface HomeGroup {
 }
 
 export interface HomeQaBoard {
-  id: number;
+  id: number; // API에서 제공하는 id 값 (quiz_id로 사용)
   title: string;
   progress: string;
 }
