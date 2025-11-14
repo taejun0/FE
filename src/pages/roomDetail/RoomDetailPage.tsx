@@ -132,7 +132,7 @@ export const RoomDetailPage = () => {
     return (
       groupData?.qa_boards.map((qa) => ({
         id: qa.board_id,
-        quizId: qa.quiz_id,
+        boardId: qa.board_id,
         tag: '오답풀이 및 질문',
         title: qa.title,
         performance: qa.progress,
@@ -274,10 +274,10 @@ export const RoomDetailPage = () => {
     }
   };
 
-  const handleQnAEnter = (quizId: number) => {
+  const handleQnAEnter = (boardId: number) => {
     // GA 이벤트 추적
-    trackEvent('Q&A', 'Enter', `quiz_${quizId}`, quizId);
-    navigate(buildQuizQaPath(quizId));
+    trackEvent('Q&A', 'Enter', `board_${boardId}`, boardId);
+    navigate(buildQuizQaPath(boardId));
   };
 
   if (isLoading || !groupData) {
@@ -430,7 +430,7 @@ export const RoomDetailPage = () => {
                     tag={item.tag}
                     title={item.title}
                     performance={item.performance}
-                    onEnter={() => handleQnAEnter(item.quizId)}
+                    onEnter={() => handleQnAEnter(item.boardId)}
                   />
                 ))}
               </S.QnaCardList>
